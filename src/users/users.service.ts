@@ -1,9 +1,6 @@
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { GetUsersQueryDto } from './dto/get-users-query.dto';
 import { IUser } from './types/user.type';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from '@prisma/client';
@@ -96,12 +93,51 @@ export class UsersService {
     }
   }
 
-  async findAllUsers(userType?: UserType): Promise<UserWithoutPassword[]> {
+  async findAllUsers_REMOVEME(
+    userType?: UserType,
+  ): Promise<UserWithoutPassword[]> {
     const users = await this.prisma.user.findMany({
       where: { userType },
     });
 
-    // Exclure passwordHashed de tous les utilisateurs
     return users.map(this.excludePassword);
+  }
+
+  async findAllUsers(query: GetUsersQueryDto): Promise<User[]> {
+    // compute filter
+    const where: any = {};
+    if (query.username) {
+      where.username = query.username;
+    }
+    if (query.name) {
+      where.name = query.name;
+    }
+    if (query.address) {
+      where.address = query.address;
+    }
+    if (query.comment) {
+      where.comment = query.comment;
+    }
+    if (query.userType) {
+      where.userType = query.userType;
+    }
+
+    // compute sort
+    const orderBy = query.sortBy
+      ? { [query.sortBy]: query.sortDir || 'asc' }
+      : undefined;
+
+    // compute pagination
+    const take = query.limit || 100;
+    const skip = query.page ? (query.page - 1) * take : undefined;
+
+    // execute query
+    const users = await this.prisma.user.findMany({
+      where,
+      orderBy,
+      skip,
+      take,
+    });
+    return users;
   }
 }

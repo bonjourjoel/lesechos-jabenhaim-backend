@@ -1,6 +1,5 @@
 ## TODO
 
-Il manque le tri et filtrage sur tous les champs de la liste d'utilisateurs
 Ajouter un système de refresh token JWT
 Ajouter un système de logs serveurs du type MEZMO
 ajouter un .env pour la production

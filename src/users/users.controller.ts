@@ -16,11 +16,11 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { GetUsersQueryDto } from './dto/get-users-query.dto';
 import { UserDto } from './dto/user.dto';
-import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { UserType } from 'src/common/enums/user-type.enum';
 import { OwnUserGuard } from './guards/own-user.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { User } from '@prisma/client';
 
 @ApiTags('users')
 @Controller('users')
@@ -30,15 +30,24 @@ export class UsersController {
   @Get()
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(new JwtAuthGuard(), new RolesGuard(UserType.ADMIN))
-  @ApiOperation({ summary: 'Retrieve all users (ADMIN only)' })
+  @ApiOperation({
+    summary: 'Retrieve users with optional filters, sorting, and pagination',
+  })
   @ApiResponse({
     status: 200,
     description: 'List of users.',
     type: UserDto,
     isArray: true,
   })
+  @Get()
+  @ApiOperation({
+    summary: 'Retrieve users with optional filters, sorting, and pagination',
+    description:
+      'Example: /users?username=john&sortBy=id&sortDir=asc&page=1&limit=10',
+  })
+  @ApiResponse({ status: 200, description: 'List of users', type: [UserDto] })
   async getAllUsers(@Query() query: GetUsersQueryDto): Promise<UserDto[]> {
-    const users = await this.usersService.findAllUsers(query.userType);
+    const users = await this.usersService.findAllUsers(query);
     return users;
   }
 
