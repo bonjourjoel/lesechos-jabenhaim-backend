@@ -40,7 +40,7 @@ lerna-debug.log*
 .env.development.local
 .env.test.local
 .env.production.local
-.env.local
+# .env.local # NOTE: not ignored so the test project can be tested easily
 
 # temp directory
 .temp
