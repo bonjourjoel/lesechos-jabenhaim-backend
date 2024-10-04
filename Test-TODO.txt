@@ -23,4 +23,4 @@
       tester l'endpoint DELETE
         memes tests
 
-- tests unitaires: NON compliqués, longs, et pas nécessaires IMHO
+- tests unitaires: NON car compliqués, longs, et pas nécessaires IMHO
