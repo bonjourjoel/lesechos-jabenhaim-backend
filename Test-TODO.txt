@@ -1,0 +1,26 @@
+
+- tests d'intégration back end avec jest et supertest:
+    créer un .env pour les tests, qui alimente un autre fichier sqlite de bdd
+    créer un module bash ou typescript qui met en place la bdd de test, et l'alimente avec quelques données, on l'utilisera dans le setUp jest
+    tester /auth
+      faire des fonctions réutilisables pour se connecter en USER ou ADMIN et récupérer le bearer token
+      tester le login
+    tester /users
+      dans le setUp, se connecter en USER ET en ADMIN, et conserver les bearer tokens en propriétés niveau classe
+      tester l'endpoint GET list
+        non connecté doit 403
+        connecté en USER doit 403
+        connecté en ADMIN
+          avec plusieurs filtres, tris, pagination
+      tester l'endpoint UPDATE
+        non connecté doit 403
+        connecté en USER avec soi meme
+        connecté en USER avec un autre user doit 403
+        connecté en ADMIN avec soi meme
+        connecté en ADMIN avec un autre user
+      tester l'endpoint GET
+        memes tests
+      tester l'endpoint DELETE
+        memes tests
+
+- tests unitaires: NON compliqués, longs, et pas nécessaires IMHO
