@@ -21,6 +21,7 @@ $ npm install
 
 ```bash
 $ npm run prisma:generate
+$ npm run prisma:deploy
 ```
 
 ### Lancer le projet
