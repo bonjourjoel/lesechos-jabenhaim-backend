@@ -7,7 +7,7 @@ Les Echos - test dev back end - Joel Abenhaim
 ### Cloner le projet
 
 ```bash
-$ git clone <url>
+$ git clone https://github.com/bonjourjoel/lesechos-jabenhaim-backend.git
 $ cd lesechos-jabenhaim-backend
 ```
 
