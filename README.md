@@ -38,11 +38,11 @@ http://localhost:3000/swagger
 
 # Démo sur swagger
 
-Créer un user avec l'endpoint /users POST, en précisant userType=ADMIN (tout le monde peut le faire sans être authentifié, pour simplifier la démo)
-Se connecter avec l'endpoint de /auth/login
-en haut à droite de swagger, se connecter avec le bouton "Authorize" en enregistrant le jwt access token renvoyé par la connexion
-Utiliser les fonctionalités via swagger en mode connecté.
-Se déconnecter via le bouton swagger, et se reconnecter, et tester les autorisations.
+- Créer un user avec l'endpoint /users POST, en précisant userType=ADMIN (tout le monde peut le faire sans être authentifié, pour simplifier la démo)
+- Se connecter avec l'endpoint de /auth/login
+- en haut à droite de swagger, se connecter avec le bouton "Authorize" en enregistrant le jwt access token renvoyé par la connexion
+- Utiliser les fonctionalités via swagger en mode connecté.
+- Se déconnecter via le bouton swagger, et se reconnecter, et tester les autorisations.
 
 ## Run tests
 
@@ -65,6 +65,6 @@ Supprimer le répertoire est suffisant.
 
 ### Après modification de prisma.service.ts, créer une migration avec cette syntaxe
 
-npm run prisma:migrate NameOfMigration
-npm run prisma:status
-npm run prisma:generate
+- npm run prisma:migrate NameOfMigration
+- npm run prisma:status
+- npm run prisma:generate
