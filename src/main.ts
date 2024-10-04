@@ -5,6 +5,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
+  // create nest.js app
   const app = await NestFactory.create(AppModule);
 
   // Configure default validation pipes
@@ -21,14 +22,24 @@ async function bootstrap() {
     .setTitle('Les Echos - test dev back end - Joel Abenhaim')
     .setDescription("Documentation de l'API")
     .setVersion('1.0')
-    .addTag('users')
+    .addTag('users') // add a section
+    .addTag('auth') // add a section
+    // add a bearer token button login/logout, the jwt token will be automatically added to each request
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+      in: 'header',
+      name: 'Authorization',
+      description: 'Log in , then enter your JWT Bearer token (accessToken)',
+    })
+    .addSecurityRequirements('bearer')
     .build();
-
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document); // Access from the url "/swagger"
 
   // start app
-  await app.listen(3000);
+  await app.listen(process.env.HTTP_PORT);
 }
 
-bootstrap();
+void bootstrap();

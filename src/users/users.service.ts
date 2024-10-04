@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 
 import { IUser } from './types/user.type';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -35,7 +39,7 @@ export class UsersService {
     return this.excludePassword(user);
   }
 
-  async findUserById(id: number): Promise<UserWithoutPassword | null> {
+  async findUserById(id: number): Promise<UserWithoutPassword> {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -45,6 +49,15 @@ export class UsersService {
     }
 
     return this.excludePassword(user);
+  }
+
+  // caution: this method returns the user with the passwordHashed field. do not send back to the client
+  async findUserByUsername(username: string): Promise<User> {
+    const user = await this.prisma.user.findUnique({
+      where: { username },
+    });
+
+    return user;
   }
 
   async updateUser(

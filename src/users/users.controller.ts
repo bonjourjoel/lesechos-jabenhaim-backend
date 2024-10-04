@@ -9,12 +9,18 @@ import {
   UsePipes,
   ValidationPipe,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dtos/create-user.dto';
-import { GetUsersQueryDto } from './dtos/get-users-query.dto';
-import { UserDto } from './dtos/user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { GetUsersQueryDto } from './dto/get-users-query.dto';
+import { UserDto } from './dto/user.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { UserType } from 'src/common/enums/user-type.enum';
+import { OwnUserGuard } from './guards/own-user.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @ApiTags('users')
 @Controller('users')
@@ -23,7 +29,8 @@ export class UsersController {
 
   @Get()
   @UsePipes(new ValidationPipe({ transform: true }))
-  @ApiOperation({ summary: 'Retrieve all users' })
+  @UseGuards(new JwtAuthGuard(), new RolesGuard(UserType.ADMIN))
+  @ApiOperation({ summary: 'Retrieve all users (ADMIN only)' })
   @ApiResponse({
     status: 200,
     description: 'List of users.',
@@ -37,7 +44,8 @@ export class UsersController {
 
   @Get(':id')
   @UsePipes(new ValidationPipe({ transform: true }))
-  @ApiOperation({ summary: 'Retrieve a user by ID' })
+  @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
+  @ApiOperation({ summary: 'Retrieve a user by ID (own user only, or ADMIN)' })
   @ApiResponse({ status: 200, description: 'User found.', type: UserDto })
   @ApiResponse({ status: 404, description: 'User not found.' })
   async getUser(@Param('id') id: number): Promise<UserDto> {
@@ -47,7 +55,7 @@ export class UsersController {
 
   @Post('')
   @UsePipes(new ValidationPipe({ transform: true }))
-  @ApiOperation({ summary: 'Create a new user' })
+  @ApiOperation({ summary: 'Create a new user (opened endpoint)' })
   @ApiBody({ type: CreateUserDto, description: 'User registration details' })
   @ApiResponse({
     status: 201,
@@ -62,7 +70,8 @@ export class UsersController {
 
   @Put(':id')
   @UsePipes(new ValidationPipe({ transform: true }))
-  @ApiOperation({ summary: 'Update a user' })
+  @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
+  @ApiOperation({ summary: 'Update a user by ID (own user only, or ADMIN)' })
   @ApiBody({ type: CreateUserDto, description: 'User registration details' })
   @ApiResponse({ status: 200, description: 'User updated.', type: UserDto })
   @ApiResponse({ status: 404, description: 'User not found.' })
@@ -76,7 +85,8 @@ export class UsersController {
 
   @Delete(':id')
   @UsePipes(new ValidationPipe({ transform: true }))
-  @ApiOperation({ summary: 'Delete a user by ID' })
+  @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
+  @ApiOperation({ summary: 'Delete a user by ID (own user only, or ADMIN)' })
   @ApiResponse({ status: 200, description: 'User deleted.', type: UserDto })
   @ApiResponse({ status: 404, description: 'User not found.' })
   async deleteUser(@Param('id') id: number): Promise<UserDto> {
