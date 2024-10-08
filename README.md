@@ -20,7 +20,6 @@ $ npm install
 ### Initialiser la base de données
 
 ```bash
-$ npm run prisma:generate
 $ npm run prisma:deploy
 ```
 
@@ -37,7 +36,7 @@ OU utiliser VSCODE debugger (le launch.json est pré-configuré)
 Il y a une interface swagger intégrée au backend pour tester directement dans le navigateur:
 http://localhost:3000/swagger
 
-# Démo sur swagger
+## Démo sur swagger
 
 - Créer un user avec l'endpoint /users POST, en précisant userType=ADMIN (tout le monde peut le faire sans être authentifié, pour simplifier la démo)
 - Se connecter avec l'endpoint de /auth/login
@@ -45,10 +44,9 @@ http://localhost:3000/swagger
 - Utiliser les fonctionalités via swagger en mode connecté.
 - Se déconnecter via le bouton swagger, et se reconnecter, et tester les autorisations.
 
-## Run tests
+## Exécuter les tests
 
 ```bash
-# integration tests
 $ npm run test
 
 ```
