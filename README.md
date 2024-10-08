@@ -48,14 +48,9 @@ http://localhost:3000/swagger
 ## Run tests
 
 ```bash
-# unit tests
+# integration tests
 $ npm run test
 
-# e2e tests (not implemented)
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
 ```
 
 ## Désinstallation
