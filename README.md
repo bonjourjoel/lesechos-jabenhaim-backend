@@ -42,7 +42,7 @@ http://localhost:3000/swagger
 - Se connecter avec l'endpoint de /auth/login
 - en haut à droite de swagger, se connecter avec le bouton "Authorize" en enregistrant le jwt access token renvoyé par la connexion
 - Utiliser les fonctionalités via swagger en mode connecté.
-- Se déconnecter via le bouton swagger, et se reconnecter, et tester les autorisations.
+- Se déconnecter via le bouton swagger "Authorize" en haut à droite de la fenêtre, créer un compte avec userType=USER, se logguer avec, refaire "Authorize", et tester les autorisations.
 
 ## Exécuter les tests
 
