@@ -17,6 +17,22 @@
       "runtimeArgs": ["--trace-warnings"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Jest Tests with Dotenv",
+      "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+      "args": ["--bail=1", "--runInBand"],
+      "env": {
+        "DOTENV_CONFIG_PATH": ".env.test"
+      },
+      "runtimeArgs": ["-r", "dotenv/config"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}",
+      "sourceMaps": true
     }
   ]
 }

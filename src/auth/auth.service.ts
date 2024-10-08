@@ -17,7 +17,10 @@ export class AuthService {
     const user: User = await this.usersService.findUserByUsername(
       loginDto.username,
     );
-    if (!user || !comparePasswords(loginDto.password, user.passwordHashed)) {
+    if (
+      !user ||
+      !(await comparePasswords(loginDto.password, user.passwordHashed))
+    ) {
       throw new UnauthorizedException('Wrong login / password.');
     }
 
