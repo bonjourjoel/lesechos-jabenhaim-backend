@@ -28,5 +28,11 @@ module.exports = {
         checksVoidReturn: false, // Allows async functions used in contexts where their return value is ignored
       },
     ],
+    'prettier/prettier': [
+      'error',
+      {
+        endOfLine: 'lf',
+      },
+    ],
   },
 };
