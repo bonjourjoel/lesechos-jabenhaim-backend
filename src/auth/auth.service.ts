@@ -26,7 +26,11 @@ export class AuthService {
       username: user.username,
       userType: user.userType,
     };
-    const accessToken = this.jwtService.sign(payload);
+
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: '7d',
+    });
 
     return {
       accessToken,

@@ -20,7 +20,7 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { UserType } from 'src/common/enums/user-type.enum';
 import { OwnUserGuard } from './guards/own-user.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { User } from '@prisma/client';
+import { HTTP } from 'src/common/enums/http-status-code.enum';
 
 @ApiTags('users')
 @Controller('users')
@@ -45,8 +45,12 @@ export class UsersController {
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
   @ApiOperation({ summary: 'Retrieve a user by ID (own user only, or ADMIN)' })
-  @ApiResponse({ status: 200, description: 'User found.', type: UserDto })
-  @ApiResponse({ status: 404, description: 'User not found.' })
+  @ApiResponse({
+    status: HTTP._200_OK,
+    description: 'User found.',
+    type: UserDto,
+  })
+  @ApiResponse({ status: HTTP._404_NOT_FOUND, description: 'User not found.' })
   async getUser(@Param('id') id: number): Promise<UserDto> {
     const user = await this.usersService.findUserById(id);
     return user;
@@ -57,11 +61,14 @@ export class UsersController {
   @ApiOperation({ summary: 'Create a new user (opened endpoint)' })
   @ApiBody({ type: CreateUserDto, description: 'User registration details' })
   @ApiResponse({
-    status: 201,
+    status: HTTP._201_CREATED,
     description: 'User successfully created.',
     type: UserDto,
   })
-  @ApiResponse({ status: 400, description: 'Validation failed.' })
+  @ApiResponse({
+    status: HTTP._400_BAD_REQUEST,
+    description: 'Validation failed.',
+  })
   async register(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
     const user = await this.usersService.createUser(createUserDto);
     return user;
@@ -72,8 +79,12 @@ export class UsersController {
   @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
   @ApiOperation({ summary: 'Update a user by ID (own user only, or ADMIN)' })
   @ApiBody({ type: CreateUserDto, description: 'User registration details' })
-  @ApiResponse({ status: 200, description: 'User updated.', type: UserDto })
-  @ApiResponse({ status: 404, description: 'User not found.' })
+  @ApiResponse({
+    status: HTTP._200_OK,
+    description: 'User updated.',
+    type: UserDto,
+  })
+  @ApiResponse({ status: HTTP._404_NOT_FOUND, description: 'User not found.' })
   async updateUser(
     @Param('id') id: number,
     @Body() body: Partial<CreateUserDto>,
@@ -86,8 +97,12 @@ export class UsersController {
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
   @ApiOperation({ summary: 'Delete a user by ID (own user only, or ADMIN)' })
-  @ApiResponse({ status: 200, description: 'User deleted.', type: UserDto })
-  @ApiResponse({ status: 404, description: 'User not found.' })
+  @ApiResponse({
+    status: HTTP._200_OK,
+    description: 'User deleted.',
+    type: UserDto,
+  })
+  @ApiResponse({ status: HTTP._404_NOT_FOUND, description: 'User not found.' })
   async deleteUser(@Param('id') id: number): Promise<UserDto> {
     const user = await this.usersService.deleteUser(id);
     return user;

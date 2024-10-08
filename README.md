@@ -51,7 +51,7 @@ http://localhost:3000/swagger
 # unit tests
 $ npm run test
 
-# e2e tests
+# e2e tests (not implemented)
 $ npm run test:e2e
 
 # test coverage
