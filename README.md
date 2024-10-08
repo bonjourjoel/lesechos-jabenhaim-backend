@@ -7,26 +7,29 @@ Les Echos - test dev back end - Joel Abenhaim
 ### Cloner le projet
 
 ```bash
-$ git clone https://github.com/bonjourjoel/lesechos-jabenhaim-backend.git
-$ cd lesechos-jabenhaim-backend
+git clone https://github.com/bonjourjoel/lesechos-jabenhaim-backend.git
+```
+
+```bash
+cd lesechos-jabenhaim-backend
 ```
 
 ### Installer les dépendances
 
 ```bash
-$ npm install
+npm install
 ```
 
 ### Initialiser la base de données
 
 ```bash
-$ npm run prisma:deploy
+npm run prisma:deploy
 ```
 
 ### Lancer le projet
 
 ```bash
-$ npm run start:dev
+npm run start:dev
 ```
 
 OU utiliser VSCODE debugger (le launch.json est pré-configuré)
@@ -47,7 +50,7 @@ http://localhost:3000/swagger
 ## Exécuter les tests
 
 ```bash
-$ npm run test
+npm run test
 ```
 
 OU utiliser VSCODE debugger (le launch.json est pré-configuré)
@@ -60,6 +63,8 @@ Supprimer le répertoire est suffisant.
 
 ### Après modification de schema.prisma, créer une migration avec cette syntaxe
 
-- npm run prisma:migrate NameOfMigration
-- npm run prisma:status
-- npm run prisma:generate
+```bash
+npm run prisma:migrate NameOfMigration
+npm run prisma:status
+npm run prisma:generate
+```
