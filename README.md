@@ -48,8 +48,9 @@ http://localhost:3000/swagger
 
 ```bash
 $ npm run test
-
 ```
+
+OU utiliser VSCODE debugger (le launch.json est pré-configuré)
 
 ## Désinstallation
 
