@@ -1,10 +1,10 @@
-## Description
+# Description
 
 Les Echos - test dev back end - Joel Abenhaim
 
-## Installation et mise en route
+# Installation et mise en route
 
-### Cloner le projet
+## Cloner le projet
 
 ```bash
 git clone https://github.com/bonjourjoel/lesechos-jabenhaim-backend.git
@@ -14,19 +14,19 @@ git clone https://github.com/bonjourjoel/lesechos-jabenhaim-backend.git
 cd lesechos-jabenhaim-backend
 ```
 
-### Installer les dépendances
+## Installer les dépendances
 
 ```bash
 npm install
 ```
 
-### Initialiser la base de données
+## Initialiser la base de données
 
 ```bash
 npm run prisma:deploy
 ```
 
-### Lancer le projet
+## Lancer le projet
 
 ```bash
 npm run start:dev
@@ -34,12 +34,12 @@ npm run start:dev
 
 OU utiliser VSCODE debugger (le launch.json est pré-configuré)
 
-### Accéder à swagger pour tester les endpoints
+## Accéder à swagger pour tester les endpoints
 
 Il y a une interface swagger intégrée au backend pour tester directement dans le navigateur:
 http://localhost:3000/swagger
 
-## Démo sur swagger
+# Démo sur swagger
 
 - Créer un user avec l'endpoint /users POST, en précisant userType=ADMIN (tout le monde peut le faire sans être authentifié, pour simplifier la démo)
 - Se connecter avec l'endpoint de /auth/login
@@ -55,11 +55,11 @@ npm run test
 
 OU utiliser VSCODE debugger (le launch.json est pré-configuré)
 
-## Désinstallation
+# Désinstallation
 
 Supprimer le répertoire est suffisant.
 
-## Developer notes
+# Developer notes
 
 ### Après modification de schema.prisma, créer une migration avec cette syntaxe
 
