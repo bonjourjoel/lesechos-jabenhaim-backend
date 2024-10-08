@@ -6,7 +6,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from '@prisma/client';
 import { UserType } from 'src/common/enums/user-type.enum';
 import { hashPassword } from 'src/common/utils/password-hasher.utils';
-import { prismaErrorMiddleware } from 'src/common/utils/prisma-error-handler';
+import { prismaErrorMiddleware } from 'src/common/utils/prisma-error-handler.utils';
 
 type UserWithoutPassword = Omit<User, 'passwordHashed'>;
 

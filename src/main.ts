@@ -18,6 +18,7 @@ async function bootstrap() {
   );
 
   // Configure Swagger
+  const SWAGGER_ENDPOINT_NAME = 'swagger';
   const config = new DocumentBuilder()
     .setTitle('Les Echos - test dev back end - Joel Abenhaim')
     .setDescription("Documentation de l'API")
@@ -36,10 +37,16 @@ async function bootstrap() {
     .addSecurityRequirements('bearer')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('swagger', app, document); // Access from the url "/swagger"
+  SwaggerModule.setup(SWAGGER_ENDPOINT_NAME, app, document);
 
   // start app
   await app.listen(process.env.HTTP_PORT);
+
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log(`REST API running on http://localhost:${process.env.HTTP_PORT}`);
+  console.log(
+    `SwaggerUi at http://localhost:${process.env.HTTP_PORT}/${SWAGGER_ENDPOINT_NAME}`,
+  );
 }
 
 void bootstrap();

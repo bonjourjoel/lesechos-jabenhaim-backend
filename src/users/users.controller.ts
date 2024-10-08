@@ -32,16 +32,6 @@ export class UsersController {
   @UseGuards(new JwtAuthGuard(), new RolesGuard(UserType.ADMIN))
   @ApiOperation({
     summary: 'Retrieve users with optional filters, sorting, and pagination',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'List of users.',
-    type: UserDto,
-    isArray: true,
-  })
-  @Get()
-  @ApiOperation({
-    summary: 'Retrieve users with optional filters, sorting, and pagination',
     description:
       'Example: /users?username=john&sortBy=id&sortDir=asc&page=1&limit=10',
   })
