@@ -82,7 +82,7 @@ describe('AuthController', () => {
       password: 'blabla',
     };
 
-    const response = await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post('/auth/login')
       .send(loginDto)
       .expect(HTTP._401_UNAUTHORIZED);
@@ -94,7 +94,7 @@ describe('AuthController', () => {
       password: 'blabla',
     };
 
-    const response = await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post('/auth/login')
       .send(loginDto)
       .expect(HTTP._401_UNAUTHORIZED);
@@ -112,6 +112,8 @@ describe('AuthController', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(HTTP._200_OK);
 
-    expect(response.body).toEqual({ message: 'Logout successful' });
+    expect(response.body).toEqual({
+      message: 'Logout successful for userId=1',
+    });
   });
 });

@@ -44,6 +44,6 @@ export class AuthService {
   }
 
   async logout(userId: number) {
-    return { message: 'Logout successful' }; // must erase the jwt on the client
+    return { message: `Logout successful for userId=${userId}` }; // must erase the jwt on the client
   }
 }

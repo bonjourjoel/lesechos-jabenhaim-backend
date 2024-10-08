@@ -9,7 +9,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
    *    @UseGuards(new JwtAuthGuard())
    */
   canActivate(context: ExecutionContext) {
-    const request = context.switchToHttp().getRequest();
+    // const request = context.switchToHttp().getRequest();
     // console.log('Request Headers:', request.headers);
     return super.canActivate(context);
   }

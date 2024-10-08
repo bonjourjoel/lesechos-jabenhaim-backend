@@ -21,7 +21,6 @@ import { loginAndReturnAccessToken } from 'src/auth/auth.controller.spec';
 
 describe('UsersController', () => {
   let app: INestApplication;
-  let jwtService: JwtService;
   let userAccessToken: string;
   let adminAccessToken: string;
 
@@ -43,7 +42,6 @@ describe('UsersController', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    jwtService = moduleFixture.get<JwtService>(JwtService);
     await app.init();
   });
 

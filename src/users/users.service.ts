@@ -16,6 +16,7 @@ export class UsersService {
 
   // Method to exclude passwordHashed field from a user
   private excludePassword(user: User): UserWithoutPassword {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHashed, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
