@@ -58,7 +58,7 @@ Supprimer le répertoire est suffisant.
 
 ## Developer notes
 
-### Après modification de prisma.service.ts, créer une migration avec cette syntaxe
+### Après modification de schema.prisma, créer une migration avec cette syntaxe
 
 - npm run prisma:migrate NameOfMigration
 - npm run prisma:status
