@@ -9,15 +9,15 @@ import {
 } from 'prisma/fixtures/seed-test';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { AuthController } from 'src/auth/auth.controller';
-import { AuthService } from 'src/auth/auth.service';
+import { AuthController } from 'src/auth/controllers/auth.controller';
+import { AuthService } from 'src/auth/services/auth.service';
 import { HTTP } from 'src/common/enums/http-status-code.enum';
 import { INestApplication } from '@nestjs/common';
-import { JwtStrategy } from 'src/auth/jwt.strategy';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { JwtStrategy } from 'src/auth/strategies/jwt.strategy';
+import { PrismaService } from 'src/prisma/services/prisma.service';
 import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
-import { loginAndReturnAccessToken } from 'src/auth/auth.controller.spec';
+import { UsersService } from '../services/users.service';
+import { loginAndReturnAccessToken } from 'src/auth/controllers/auth.controller.spec';
 
 describe('UsersController', () => {
   let app: INestApplication;

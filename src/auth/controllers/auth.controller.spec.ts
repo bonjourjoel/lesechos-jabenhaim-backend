@@ -9,12 +9,12 @@ import {
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { AuthService } from '../services/auth.service';
 import { HTTP } from 'src/common/enums/http-status-code.enum';
 import { INestApplication } from '@nestjs/common';
-import { JwtStrategy } from './jwt.strategy';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { UsersService } from 'src/users/users.service';
+import { JwtStrategy } from '../strategies/jwt.strategy';
+import { PrismaService } from 'src/prisma/services/prisma.service';
+import { UsersService } from 'src/users/services/users.service';
 
 export async function loginAndReturnAccessToken(
   app: INestApplication,

@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 
 import { JwtService } from '@nestjs/jwt';
-import { LoginDto } from './dto/login.dto';
+import { LoginDto } from '../dtos/login.dto';
 import { User } from '@prisma/client';
-import { UsersService } from '../users/users.service';
+import { UsersService } from 'src/users/services/users.service';
 import { comparePasswords } from 'src/common/utils/password-hasher.utils';
 
 @Injectable()

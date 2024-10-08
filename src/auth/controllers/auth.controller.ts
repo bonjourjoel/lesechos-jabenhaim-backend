@@ -6,11 +6,11 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
+import { AuthService } from '../services/auth.service';
+import { LoginDto } from '../dtos/login.dto';
 import { ApiTags, ApiResponse, ApiOperation } from '@nestjs/swagger';
 import { HTTP } from 'src/common/enums/http-status-code.enum';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('auth')
 @Controller('auth')

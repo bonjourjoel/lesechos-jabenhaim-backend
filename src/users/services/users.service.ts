@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { GetUsersQueryDto } from './dto/get-users-query.dto';
-import { IUser } from './types/user.type';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { GetUsersQueryDto } from '../dtos/get-users-query.dto';
+import { IUser } from '../types/user.type';
+import { PrismaService } from 'src/prisma/services/prisma.service';
 import { User } from '@prisma/client';
 import { UserType } from 'src/common/enums/user-type.enum';
 import { hashPassword } from 'src/common/utils/password-hasher.utils';

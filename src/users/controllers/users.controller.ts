@@ -12,15 +12,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiOperation, ApiBody } from '@nestjs/swagger';
-import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { GetUsersQueryDto } from './dto/get-users-query.dto';
-import { UserDto } from './dto/user.dto';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { UserType } from 'src/common/enums/user-type.enum';
-import { OwnUserGuard } from './guards/own-user.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { HTTP } from 'src/common/enums/http-status-code.enum';
+import { UserType } from 'src/common/enums/user-type.enum';
+import { CreateUserDto } from '../dtos/create-user.dto';
+import { GetUsersQueryDto } from '../dtos/get-users-query.dto';
+import { UserDto } from '../dtos/user.dto';
+import { OwnUserGuard } from '../guards/own-user.guard';
+import { UsersService } from '../services/users.service';
 
 @ApiTags('users')
 @Controller('users')
