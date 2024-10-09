@@ -5,7 +5,7 @@ import {
   TEST_PASSWORD,
   TEST_USER_1,
   TEST_USER_ADMIN,
-  seedDatabase as seedTestDatabase,
+  seedTestDatabase,
 } from 'prisma/fixtures/seed-test';
 import { Test, TestingModule } from '@nestjs/testing';
 

@@ -4,7 +4,7 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import {
   TEST_PASSWORD,
   TEST_USER_1,
-  seedDatabase as seedTestDatabase,
+  seedTestDatabase,
 } from 'prisma/fixtures/seed-test';
 import { Test, TestingModule } from '@nestjs/testing';
 

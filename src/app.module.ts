@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
+    // source environment variables
     ConfigModule.forRoot({
       envFilePath: `.env.${process.env.NODE_ENV}`,
       isGlobal: true,

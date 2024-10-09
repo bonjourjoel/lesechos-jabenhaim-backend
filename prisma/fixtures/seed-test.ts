@@ -7,7 +7,7 @@ export const TEST_PASSWORD = 'password';
 
 const prisma = new PrismaClient();
 
-export async function seedDatabase() {
+export async function seedTestDatabase() {
   await prisma.$transaction(async (prisma) => {
     // delete users data and reset auto-increment
     await prisma.user.deleteMany();
