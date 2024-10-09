@@ -18,6 +18,7 @@ import { PrismaService } from 'src/prisma/services/prisma.service';
 import { UserType } from 'src/common/enums/user-type.enum';
 import { UsersController } from './users.controller';
 import { UsersService } from '../services/users.service';
+import { hashPassword } from 'src/common/utils/password-hasher.utils';
 import { loginAndReturnAccessToken } from 'src/auth/controllers/auth.controller.spec';
 
 describe('UsersController', () => {
@@ -222,6 +223,29 @@ describe('UsersController', () => {
         .expect(HTTP._200_OK);
 
       expect(response.body).toHaveProperty('userType', UserType.ADMIN);
+    });
+
+    it('should allow ADMIN to update all fields of a user at once', async () => {
+      const updatedData = {
+        username: 'updatedUser',
+        passwordHashed: await hashPassword('newpassword'),
+        name: 'Updated Full Name',
+        address: '789 New Address',
+        comment: 'Updated comment by admin',
+        userType: UserType.ADMIN,
+      };
+
+      const response = await request(app.getHttpServer())
+        .put('/users/1')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updatedData)
+        .expect(HTTP._200_OK);
+
+      expect(response.body).toHaveProperty('username', updatedData.username);
+      expect(response.body).toHaveProperty('name', updatedData.name);
+      expect(response.body).toHaveProperty('address', updatedData.address);
+      expect(response.body).toHaveProperty('comment', updatedData.comment);
+      expect(response.body).toHaveProperty('userType', updatedData.userType);
     });
   });
 
