@@ -17,6 +17,7 @@ import {
 } from '@nestjs/swagger';
 import { HTTP } from 'src/common/enums/http-status-code.enum';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { AuthenticatedRequest } from '../types/authenticated-request.interface';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -42,7 +43,7 @@ export class AuthController {
     status: HTTP._200_OK,
     description: 'User successfully logged out.',
   })
-  async logout(@Request() req) {
+  async logout(@Request() req: AuthenticatedRequest) {
     return this.authService.logout(req.user.userId);
   }
 }
