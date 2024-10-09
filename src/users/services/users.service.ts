@@ -49,8 +49,10 @@ export class UsersService {
     return this.excludePassword(user);
   }
 
-  // caution: this method returns the user with the passwordHashed field. do not send back to the client
-  async findUserByUsername(username: string): Promise<User> {
+  /**
+   * caution: this method returns the user with the passwordHashed field. do not send back to the client
+   */
+  async findUserWithPasswordByUsername(username: string): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: { username },
     });
@@ -104,7 +106,7 @@ export class UsersService {
     return users.map(this.excludePassword);
   }
 
-  async findAllUsers(query: GetUsersQueryDto): Promise<User[]> {
+  async findAllUsers(query: GetUsersQueryDto): Promise<UserWithoutPassword[]> {
     // compute filter
     const where: any = {};
     if (query.username) {
@@ -139,6 +141,7 @@ export class UsersService {
       skip,
       take,
     });
-    return users;
+    const usersWithoutPassword = users.map((u) => this.excludePassword(u));
+    return usersWithoutPassword;
   }
 }

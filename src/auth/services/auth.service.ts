@@ -14,7 +14,7 @@ export class AuthService {
   ) {}
 
   async login(loginDto: LoginDto) {
-    const user: User = await this.usersService.findUserByUsername(
+    const user: User = await this.usersService.findUserWithPasswordByUsername(
       loginDto.username,
     );
     if (
