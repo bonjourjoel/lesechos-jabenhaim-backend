@@ -101,6 +101,7 @@ describe('UsersController', () => {
       // Verify the filter and pagination
       expect(response.body).toHaveLength(1); // Expect only one user due to limit=1
       expect(response.body[0].username).toEqual(TEST_USER_1); // Verify filter works
+      expect(response.body[0]).not.toHaveProperty('passwordHashed');
     });
 
     it('should allow ADMIN to paginate users correctly', async () => {
@@ -116,6 +117,7 @@ describe('UsersController', () => {
 
       expect(response.body).toHaveLength(1); // Expect only one user
       expect(response.body[0].username).toEqual(TEST_USER_ADMIN); // Should return the second user on page 2
+      expect(response.body[0]).not.toHaveProperty('passwordHashed');
     });
   });
 
@@ -140,6 +142,7 @@ describe('UsersController', () => {
         .expect(HTTP._200_OK);
 
       expect(response.body).toHaveProperty('id', 1);
+      expect(response.body).not.toHaveProperty('passwordHashed');
     });
 
     it('should allow ADMIN to access any user data', async () => {
@@ -149,6 +152,7 @@ describe('UsersController', () => {
         .expect(HTTP._200_OK);
 
       expect(response.body).toHaveProperty('id', 1);
+      expect(response.body).not.toHaveProperty('passwordHashed');
     });
   });
 
@@ -187,6 +191,7 @@ describe('UsersController', () => {
       expect(response.body).toHaveProperty('address', newUser.address);
       expect(response.body).toHaveProperty('comment', newUser.comment);
       expect(response.body).toHaveProperty('userType', newUser.userType);
+      expect(response.body).not.toHaveProperty('passwordHashed');
     });
 
     it('should create a user and reflect it in a subsequent GET request', async () => {
@@ -211,6 +216,7 @@ describe('UsersController', () => {
       expect(getResponse.body).toHaveProperty('address', newUser.address);
       expect(getResponse.body).toHaveProperty('comment', newUser.comment);
       expect(getResponse.body).toHaveProperty('userType', newUser.userType);
+      expect(getResponse.body).not.toHaveProperty('passwordHashed');
     });
   });
 
@@ -238,6 +244,7 @@ describe('UsersController', () => {
         .expect(HTTP._200_OK);
 
       expect(response.body).toHaveProperty('name', 'Updated Name');
+      expect(response.body).not.toHaveProperty('passwordHashed');
     });
 
     it('should allow ADMIN to update any user data', async () => {
@@ -248,6 +255,7 @@ describe('UsersController', () => {
         .expect(HTTP._200_OK);
 
       expect(response.body).toHaveProperty('name', 'Admin Updated');
+      expect(response.body).not.toHaveProperty('passwordHashed');
     });
 
     it('should return 403 if USER tries to update userType to ADMIN', async () => {
@@ -267,6 +275,7 @@ describe('UsersController', () => {
         .expect(HTTP._200_OK);
 
       expect(response.body).toHaveProperty('userType', UserType.USER);
+      expect(response.body).not.toHaveProperty('passwordHashed');
 
       // Test userType set to undefined
       response = await request(app.getHttpServer())
@@ -276,6 +285,7 @@ describe('UsersController', () => {
         .expect(HTTP._200_OK);
 
       expect(response.body).toHaveProperty('userType', UserType.USER); // Assuming 'USER' remains unchanged or default
+      expect(response.body).not.toHaveProperty('passwordHashed');
     });
 
     it('should allow ADMIN to update userType to ADMIN', async () => {
@@ -286,6 +296,7 @@ describe('UsersController', () => {
         .expect(HTTP._200_OK);
 
       expect(response.body).toHaveProperty('userType', UserType.ADMIN);
+      expect(response.body).not.toHaveProperty('passwordHashed');
     });
 
     it('should allow ADMIN to update all fields of a user at once', async () => {
@@ -309,6 +320,7 @@ describe('UsersController', () => {
       expect(response.body).toHaveProperty('address', updatedData.address);
       expect(response.body).toHaveProperty('comment', updatedData.comment);
       expect(response.body).toHaveProperty('userType', updatedData.userType);
+      expect(response.body).not.toHaveProperty('passwordHashed');
     });
 
     it('should update user data and reflect the changes on a subsequent GET request', async () => {
@@ -335,6 +347,7 @@ describe('UsersController', () => {
       expect(response.body).toHaveProperty('name', updatedData.name);
       expect(response.body).toHaveProperty('address', updatedData.address);
       expect(response.body).toHaveProperty('comment', updatedData.comment);
+      expect(response.body).not.toHaveProperty('passwordHashed');
     });
   });
 
@@ -359,6 +372,7 @@ describe('UsersController', () => {
         .expect(HTTP._200_OK);
 
       expect(response.body).toHaveProperty('id', 1);
+      expect(response.body).not.toHaveProperty('passwordHashed');
     });
 
     it('should allow ADMIN to delete any user', async () => {
@@ -368,6 +382,7 @@ describe('UsersController', () => {
         .expect(HTTP._200_OK);
 
       expect(response.body).toHaveProperty('id', 2);
+      expect(response.body).not.toHaveProperty('passwordHashed');
     });
   });
 
