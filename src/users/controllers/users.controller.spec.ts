@@ -307,4 +307,18 @@ describe('UsersController', () => {
       expect(response.body).toHaveProperty('id', 2);
     });
   });
+
+  it('should delete a user and return 404 on subsequent GET request', async () => {
+    // Perform the DELETE request to delete the user
+    await request(app.getHttpServer())
+      .delete('/users/1')
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .expect(HTTP._200_OK);
+
+    // Perform the GET request to verify the user no longer exists
+    await request(app.getHttpServer())
+      .get('/users/1')
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .expect(HTTP._404_NOT_FOUND);
+  });
 });
