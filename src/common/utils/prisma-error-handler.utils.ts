@@ -5,7 +5,7 @@ enum PRISMA_ERROR_CODE {
 }
 
 export function prismaErrorMiddleware(error: any): any {
-  if ((error.code = PRISMA_ERROR_CODE.RECORD_NOT_FOUND)) {
+  if (error.code === PRISMA_ERROR_CODE.RECORD_NOT_FOUND) {
     return new NotFoundException();
   } else {
     return error;
