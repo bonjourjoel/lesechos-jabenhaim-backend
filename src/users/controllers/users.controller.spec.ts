@@ -11,6 +11,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { AuthController } from 'src/auth/controllers/auth.controller';
 import { AuthService } from 'src/auth/services/auth.service';
+import { CreateUserDto } from '../dtos/create-user.dto';
 import { HTTP } from 'src/common/enums/http-status-code.enum';
 import { INestApplication } from '@nestjs/common';
 import { JwtStrategy } from 'src/auth/strategies/jwt.strategy';
@@ -148,6 +149,68 @@ describe('UsersController', () => {
         .expect(HTTP._200_OK);
 
       expect(response.body).toHaveProperty('id', 1);
+    });
+  });
+
+  describe('/users (POST) - Create a new user', () => {
+    const newUser: CreateUserDto = {
+      username: 'newuser',
+      password: 'password123',
+      name: 'New User',
+      address: '123 New St',
+      comment: 'This is a new user',
+      userType: UserType.USER,
+    };
+
+    it('should return 400 if validation fails', async () => {
+      // Send incomplete data to trigger validation failure
+      const incompleteUserData = {
+        username: 'incompleteuser',
+        password: '', // Password is empty, validation should fail
+      };
+
+      await request(app.getHttpServer())
+        .post('/users')
+        .send(incompleteUserData)
+        .expect(HTTP._400_BAD_REQUEST);
+    });
+
+    it('should create a new user and return 201', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/users')
+        .send(newUser)
+        .expect(HTTP._201_CREATED);
+
+      // Verify the response contains the correct user details
+      expect(response.body).toHaveProperty('username', newUser.username);
+      expect(response.body).toHaveProperty('name', newUser.name);
+      expect(response.body).toHaveProperty('address', newUser.address);
+      expect(response.body).toHaveProperty('comment', newUser.comment);
+      expect(response.body).toHaveProperty('userType', newUser.userType);
+    });
+
+    it('should create a user and reflect it in a subsequent GET request', async () => {
+      // First, create the new user
+      const createResponse = await request(app.getHttpServer())
+        .post('/users')
+        .send(newUser)
+        .expect(HTTP._201_CREATED);
+
+      const createdUserId = createResponse.body.id;
+
+      // Then, verify the user can be retrieved with GET
+      const getResponse = await request(app.getHttpServer())
+        .get(`/users/${createdUserId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .expect(HTTP._200_OK);
+
+      // Verify the data retrieved is the same as the one sent during creation
+      expect(getResponse.body).toHaveProperty('id', createdUserId);
+      expect(getResponse.body).toHaveProperty('username', newUser.username);
+      expect(getResponse.body).toHaveProperty('name', newUser.name);
+      expect(getResponse.body).toHaveProperty('address', newUser.address);
+      expect(getResponse.body).toHaveProperty('comment', newUser.comment);
+      expect(getResponse.body).toHaveProperty('userType', newUser.userType);
     });
   });
 
