@@ -15,6 +15,7 @@ import { HTTP } from 'src/common/enums/http-status-code.enum';
 import { INestApplication } from '@nestjs/common';
 import { JwtStrategy } from 'src/auth/strategies/jwt.strategy';
 import { PrismaService } from 'src/prisma/services/prisma.service';
+import { UserType } from 'src/common/enums/user-type.enum';
 import { UsersController } from './users.controller';
 import { UsersService } from '../services/users.service';
 import { loginAndReturnAccessToken } from 'src/auth/controllers/auth.controller.spec';
@@ -183,6 +184,44 @@ describe('UsersController', () => {
         .expect(HTTP._200_OK);
 
       expect(response.body).toHaveProperty('name', 'Admin Updated');
+    });
+
+    it('should return 403 if USER tries to update userType to ADMIN', async () => {
+      await request(app.getHttpServer())
+        .put('/users/1')
+        .set('Authorization', `Bearer ${userAccessToken}`)
+        .send({ userType: UserType.ADMIN }) // USER trying to change userType to 'ADMIN'
+        .expect(HTTP._403_FORBIDDEN);
+    });
+
+    it('should allow USER to update userType to USER or undefined', async () => {
+      // Test userType set to 'USER'
+      let response = await request(app.getHttpServer())
+        .put('/users/1')
+        .set('Authorization', `Bearer ${userAccessToken}`)
+        .send({ userType: UserType.USER })
+        .expect(HTTP._200_OK);
+
+      expect(response.body).toHaveProperty('userType', UserType.USER);
+
+      // Test userType set to undefined
+      response = await request(app.getHttpServer())
+        .put('/users/1')
+        .set('Authorization', `Bearer ${userAccessToken}`)
+        .send({ userType: undefined })
+        .expect(HTTP._200_OK);
+
+      expect(response.body).toHaveProperty('userType', UserType.USER); // Assuming 'USER' remains unchanged or default
+    });
+
+    it('should allow ADMIN to update userType to ADMIN', async () => {
+      const response = await request(app.getHttpServer())
+        .put('/users/1')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send({ userType: UserType.ADMIN })
+        .expect(HTTP._200_OK);
+
+      expect(response.body).toHaveProperty('userType', UserType.ADMIN);
     });
   });
 

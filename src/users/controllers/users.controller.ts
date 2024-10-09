@@ -10,6 +10,8 @@ import {
   ValidationPipe,
   Query,
   UseGuards,
+  Req,
+  ForbiddenException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -27,6 +29,7 @@ import { GetUsersQueryDto } from '../dtos/get-users-query.dto';
 import { UserDto } from '../dtos/user.dto';
 import { OwnUserGuard } from '../guards/own-user.guard';
 import { UsersService } from '../services/users.service';
+import { AuthenticatedRequest } from 'src/auth/types/authenticated-request.interface';
 
 @ApiTags('users')
 @Controller('users')
@@ -94,9 +97,21 @@ export class UsersController {
   })
   @ApiResponse({ status: HTTP._404_NOT_FOUND, description: 'User not found.' })
   async updateUser(
+    @Req() req: AuthenticatedRequest,
     @Param('id') id: number,
     @Body() body: Partial<CreateUserDto>,
   ): Promise<UserDto> {
+    // If the user has role USER, check if they are trying to update userType to anything other than 'USER', null, or undefined
+    if (
+      req.user.userType !== UserType.ADMIN &&
+      body.userType === UserType.ADMIN
+    ) {
+      throw new ForbiddenException(
+        'Only admins can change user type to ADMIN.',
+      );
+    }
+
+    // update user
     const user = await this.usersService.updateUser(id, body);
     return user;
   }
