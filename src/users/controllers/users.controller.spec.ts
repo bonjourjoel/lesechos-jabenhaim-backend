@@ -247,6 +247,32 @@ describe('UsersController', () => {
       expect(response.body).toHaveProperty('comment', updatedData.comment);
       expect(response.body).toHaveProperty('userType', updatedData.userType);
     });
+
+    it('should update user data and reflect the changes on a subsequent GET request', async () => {
+      const updatedData = {
+        name: 'New Name After Update',
+        address: 'New Address 123',
+        comment: 'Updated comment',
+      };
+
+      // Perform the PUT request to update the user
+      await request(app.getHttpServer())
+        .put('/users/1')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updatedData)
+        .expect(HTTP._200_OK);
+
+      // Perform the GET request to verify the updated data
+      const response = await request(app.getHttpServer())
+        .get('/users/1')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .expect(HTTP._200_OK);
+
+      // Verify that the data has been updated
+      expect(response.body).toHaveProperty('name', updatedData.name);
+      expect(response.body).toHaveProperty('address', updatedData.address);
+      expect(response.body).toHaveProperty('comment', updatedData.comment);
+    });
   });
 
   describe('/users/:id (DELETE) - Delete user by ID', () => {
