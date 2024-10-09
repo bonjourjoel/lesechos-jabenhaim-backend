@@ -30,6 +30,7 @@ import { UserDto } from '../dtos/user.dto';
 import { OwnUserGuard } from '../guards/own-user.guard';
 import { UsersService } from '../services/users.service';
 import { AuthenticatedRequest } from 'src/auth/types/authenticated-request.interface';
+import { UpdateUserDto } from '../dtos/update-user.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -89,7 +90,7 @@ export class UsersController {
   @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
   @ApiConsumes('multipart/form-data', 'application/json')
   @ApiOperation({ summary: 'Update a user by ID (own user only, or ADMIN)' })
-  @ApiBody({ type: CreateUserDto, description: 'User registration details' })
+  @ApiBody({ type: UpdateUserDto, description: 'User fields to update' })
   @ApiResponse({
     status: HTTP._200_OK,
     description: 'User updated.',
@@ -99,7 +100,7 @@ export class UsersController {
   async updateUser(
     @Req() req: AuthenticatedRequest,
     @Param('id') id: number,
-    @Body() body: Partial<CreateUserDto>,
+    @Body() body: UpdateUserDto,
   ): Promise<UserDto> {
     // If the user has role USER, check if they are trying to update userType to anything other than 'USER', null, or undefined
     if (
