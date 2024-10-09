@@ -84,13 +84,12 @@ describe('UsersController', () => {
         .expect(HTTP._403_FORBIDDEN);
     });
 
-    it('should allow ADMIN to list users with filters, sorting, and pagination', async () => {
-      // Test with filter (by username), sorting by id, descending, and pagination (limit 1)
+    it('should allow ADMIN to list users filtered by username, sorted by id in descending order, and paginated', async () => {
       const response = await request(app.getHttpServer())
         .get('/users')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({
-          username: TEST_USER_1, // Filter by username
+          username: TEST_USER_1, // Filter by username 'testuser1'
           sortBy: 'id', // Sort by ID
           sortDir: 'desc', // Descending order
           page: 1, // Page 1
@@ -100,23 +99,127 @@ describe('UsersController', () => {
 
       // Verify the filter and pagination
       expect(response.body).toHaveLength(1); // Expect only one user due to limit=1
-      expect(response.body[0].username).toEqual(TEST_USER_1); // Verify filter works
+      expect(response.body[0].username).toEqual(TEST_USER_1); // Should return 'testuser1'
       expect(response.body[0]).not.toHaveProperty('passwordHashed');
     });
 
-    it('should allow ADMIN to paginate users correctly', async () => {
-      // Test pagination on page 2 with limit 1 (should return second user)
-      const response = await request(app.getHttpServer())
+    it('should allow ADMIN to paginate users and return correct users on each page', async () => {
+      const page1Response = await request(app.getHttpServer())
+        .get('/users')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({
+          page: 1, // Page 1
+          limit: 1, // Limit results to 1 user per page
+        })
+        .expect(HTTP._200_OK);
+
+      expect(page1Response.body).toHaveLength(1);
+      const firstUserId = page1Response.body[0].id;
+      expect(page1Response.body[0].username).toEqual(TEST_USER_1); // First user should be 'testuser1'
+
+      const page2Response = await request(app.getHttpServer())
         .get('/users')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({
           page: 2, // Page 2
-          limit: 1, // Limit results to 1
+          limit: 1, // Limit results to 1 user per page
         })
         .expect(HTTP._200_OK);
 
-      expect(response.body).toHaveLength(1); // Expect only one user
-      expect(response.body[0].username).toEqual(TEST_USER_ADMIN); // Should return the second user on page 2
+      expect(page2Response.body).toHaveLength(1);
+      const secondUserId = page2Response.body[0].id;
+      expect(secondUserId).not.toEqual(firstUserId); // Ensure the second page returns a different user
+      expect(page2Response.body[0].username).toEqual(TEST_USER_ADMIN); // Second user should be 'adminuser'
+      expect(page2Response.body[0]).not.toHaveProperty('passwordHashed');
+    });
+
+    it('should sort users by id in ascending order and verify the sort works correctly', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/users')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({
+          sortBy: 'id',
+          sortDir: 'asc', // Ascending order
+        })
+        .expect(HTTP._200_OK);
+
+      expect(response.body.length).toBeGreaterThan(1);
+      expect(response.body[0].id).toBeLessThan(response.body[1].id); // Verify ascending order
+      expect(response.body[0].username).toEqual(TEST_USER_1); // First user should be 'testuser1'
+      expect(response.body[1].username).toEqual(TEST_USER_ADMIN); // Second user should be 'adminuser'
+      expect(response.body[0]).not.toHaveProperty('passwordHashed');
+    });
+
+    it('should filter users by userType and paginate the results', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/users')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({
+          userType: UserType.USER, // Filter by userType USER
+          sortBy: 'username', // Sort by username
+          sortDir: 'desc', // Descending order
+          page: 1, // First page
+          limit: 2, // Limit results to 2 users per page
+        })
+        .expect(HTTP._200_OK);
+
+      expect(response.body.length).toBeLessThanOrEqual(2); // Ensure pagination works
+
+      if (response.body.length === 2) {
+        expect(
+          response.body[0].username.localeCompare(response.body[1].username),
+        ).toBeGreaterThan(0); // Verify descending order for usernames
+      }
+
+      expect(
+        response.body.every((user) => user.userType === UserType.USER),
+      ).toBe(true); // Ensure filter by userType works (only USERs)
+      expect(response.body[0]).not.toHaveProperty('passwordHashed');
+    });
+
+    it('should return an empty list if no users match the filter', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/users')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({
+          username: 'nonexistentuser', // Filter by a non-existent username
+        })
+        .expect(HTTP._200_OK);
+
+      expect(response.body).toHaveLength(0); // Expect empty result
+    });
+
+    it('should return an empty list when paginating beyond the last page', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/users')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({
+          page: 1000, // Arbitrary large page number
+          limit: 1,
+        })
+        .expect(HTTP._200_OK);
+
+      expect(response.body).toHaveLength(0); // Expect empty result
+    });
+
+    it('should allow sorting by username in descending order and return correctly sorted users', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/users')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({
+          sortBy: 'username',
+          sortDir: 'desc',
+        })
+        .expect(HTTP._200_OK);
+
+      expect(response.body.length).toBeGreaterThan(1);
+
+      if (response.body.length === 2) {
+        expect(
+          response.body[0].username.localeCompare(response.body[1].username),
+        ).toBeGreaterThan(0); // Verify descending order for usernames
+      }
+
       expect(response.body[0]).not.toHaveProperty('passwordHashed');
     });
   });
