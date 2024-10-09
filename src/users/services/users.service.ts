@@ -14,50 +14,57 @@ type UserWithoutPassword = Omit<User, 'passwordHashed'>;
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  // Method to exclude passwordHashed field from a user
-  private excludePassword(user: User): UserWithoutPassword {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { passwordHashed, ...userWithoutPassword } = user;
-    return userWithoutPassword;
-  }
-
   async createUser(userData: IUser): Promise<UserWithoutPassword> {
     const passwordHashed: string = await hashPassword(userData.password);
     const userTypeAsString: string = userData.userType.toString();
     delete userData.password;
 
-    const user = await this.prisma.user.create({
-      data: {
-        ...userData,
-        passwordHashed,
-        userType: userTypeAsString,
-      },
-    });
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          ...userData,
+          passwordHashed,
+          userType: userTypeAsString,
+        },
+      });
 
-    return this.excludePassword(user);
+      delete user.passwordHashed;
+      return user;
+    } catch (error) {
+      throw prismaErrorMiddleware(error);
+    }
   }
 
   async findUserById(id: number): Promise<UserWithoutPassword> {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-    });
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+      });
 
-    if (!user) {
-      throw new NotFoundException();
+      if (!user) {
+        throw new NotFoundException();
+      }
+
+      delete user.passwordHashed;
+      return user;
+    } catch (error) {
+      throw prismaErrorMiddleware(error);
     }
-
-    return this.excludePassword(user);
   }
 
   /**
    * caution: this method returns the user with the passwordHashed field. do not send back to the client
    */
   async findUserWithPasswordByUsername(username: string): Promise<User> {
-    const user = await this.prisma.user.findUnique({
-      where: { username },
-    });
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { username },
+      });
 
-    return user;
+      return user;
+    } catch (error) {
+      throw prismaErrorMiddleware(error);
+    }
   }
 
   async updateUser(
@@ -79,7 +86,9 @@ export class UsersService {
           userType: userTypeAsString,
         },
       });
-      return this.excludePassword(user);
+
+      delete user.passwordHashed;
+      return user;
     } catch (error) {
       throw prismaErrorMiddleware(error);
     }
@@ -90,7 +99,9 @@ export class UsersService {
       const user = await this.prisma.user.delete({
         where: { id },
       });
-      return this.excludePassword(user);
+
+      delete user.passwordHashed;
+      return user;
     } catch (error) {
       throw prismaErrorMiddleware(error);
     }
@@ -99,11 +110,16 @@ export class UsersService {
   async findAllUsers_REMOVEME(
     userType?: UserType,
   ): Promise<UserWithoutPassword[]> {
-    const users = await this.prisma.user.findMany({
-      where: { userType },
-    });
+    try {
+      const users = await this.prisma.user.findMany({
+        where: { userType },
+      });
 
-    return users.map(this.excludePassword);
+      users.forEach((user) => delete user.passwordHashed);
+      return users;
+    } catch (error) {
+      throw prismaErrorMiddleware(error);
+    }
   }
 
   async findAllUsers(query: GetUsersQueryDto): Promise<UserWithoutPassword[]> {
@@ -135,13 +151,18 @@ export class UsersService {
     const skip = query.page ? (query.page - 1) * take : undefined;
 
     // execute query
-    const users = await this.prisma.user.findMany({
-      where,
-      orderBy,
-      skip,
-      take,
-    });
-    const usersWithoutPassword = users.map((u) => this.excludePassword(u));
-    return usersWithoutPassword;
+    try {
+      const users = await this.prisma.user.findMany({
+        where,
+        orderBy,
+        skip,
+        take,
+      });
+
+      users.forEach((user) => delete user.passwordHashed);
+      return users;
+    } catch (error) {
+      throw prismaErrorMiddleware(error);
+    }
   }
 }
