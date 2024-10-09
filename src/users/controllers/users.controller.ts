@@ -11,7 +11,13 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiResponse, ApiOperation, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiResponse,
+  ApiOperation,
+  ApiBody,
+  ApiConsumes,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { HTTP } from 'src/common/enums/http-status-code.enum';
@@ -58,6 +64,7 @@ export class UsersController {
 
   @Post('')
   @UsePipes(new ValidationPipe({ transform: true }))
+  @ApiConsumes('multipart/form-data', 'application/json')
   @ApiOperation({ summary: 'Create a new user (opened endpoint)' })
   @ApiBody({ type: CreateUserDto, description: 'User registration details' })
   @ApiResponse({
@@ -77,6 +84,7 @@ export class UsersController {
   @Put(':id')
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
+  @ApiConsumes('multipart/form-data', 'application/json')
   @ApiOperation({ summary: 'Update a user by ID (own user only, or ADMIN)' })
   @ApiBody({ type: CreateUserDto, description: 'User registration details' })
   @ApiResponse({

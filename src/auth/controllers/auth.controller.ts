@@ -8,7 +8,13 @@ import {
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../dtos/login.dto';
-import { ApiTags, ApiResponse, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiResponse,
+  ApiOperation,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 import { HTTP } from 'src/common/enums/http-status-code.enum';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
@@ -18,6 +24,8 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
+  @ApiConsumes('multipart/form-data', 'application/json')
+  @ApiBody({ type: LoginDto })
   @ApiOperation({ summary: 'Login a user' })
   @ApiResponse({
     status: HTTP._200_OK,
