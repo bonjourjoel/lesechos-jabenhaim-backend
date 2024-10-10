@@ -5,10 +5,10 @@ export async function hashPassword(password: string): Promise<string> {
   return passwordHashed;
 }
 
-export async function comparePasswords(
-  plainPassword: string,
-  hashedPassword: string,
-): Promise<boolean> {
-  const isMatch = await bcryptjs.compare(plainPassword, hashedPassword);
+export async function compareHashedPasword(args: {
+  plainStr: string;
+  hashedStr: string;
+}): Promise<boolean> {
+  const isMatch = await bcryptjs.compare(args.plainStr, args.hashedStr);
   return isMatch;
 }

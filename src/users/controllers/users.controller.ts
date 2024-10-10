@@ -41,7 +41,8 @@ export class UsersController {
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(new JwtAuthGuard(), new RolesGuard(UserType.ADMIN))
   @ApiOperation({
-    summary: 'Retrieve users with optional filters, sorting, and pagination',
+    summary:
+      'Retrieve users with optional filters, sorting, and pagination  [Authorization: authenticated & ADMIN]',
     description:
       'Example: /users?username=john&sortBy=id&sortDir=asc&page=1&limit=10',
   })
@@ -54,7 +55,10 @@ export class UsersController {
   @Get(':id')
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
-  @ApiOperation({ summary: 'Retrieve a user by ID (own user only, or ADMIN)' })
+  @ApiOperation({
+    summary:
+      'Retrieve a user by ID [Authorization: authenticated & (ADMIN | own_user)]',
+  })
   @ApiResponse({
     status: HTTP._200_OK,
     description: 'User found.',
@@ -69,7 +73,10 @@ export class UsersController {
   @Post('')
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiConsumes('multipart/form-data', 'application/json')
-  @ApiOperation({ summary: 'Create a new user (opened endpoint)' })
+  @ApiOperation({
+    summary:
+      'Create a new user  [Authorization: none] [Authorization to set userType=ADMIN: none]',
+  })
   @ApiBody({ type: CreateUserDto, description: 'User registration details' })
   @ApiResponse({
     status: HTTP._201_CREATED,
@@ -89,7 +96,10 @@ export class UsersController {
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
   @ApiConsumes('multipart/form-data', 'application/json')
-  @ApiOperation({ summary: 'Update a user by ID (own user only, or ADMIN)' })
+  @ApiOperation({
+    summary:
+      'Update a user by ID [Authorization: authenticated & (ADMIN | own_user)]',
+  })
   @ApiBody({ type: UpdateUserDto, description: 'User fields to update' })
   @ApiResponse({
     status: HTTP._200_OK,
@@ -120,7 +130,10 @@ export class UsersController {
   @Delete(':id')
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
-  @ApiOperation({ summary: 'Delete a user by ID (own user only, or ADMIN)' })
+  @ApiOperation({
+    summary:
+      'Delete a user by ID [Authorization: authenticated & (ADMIN | own_user)] [Authorization to set userType=ADMIN: ADMIN]',
+  })
   @ApiResponse({
     status: HTTP._200_OK,
     description: 'User deleted.',

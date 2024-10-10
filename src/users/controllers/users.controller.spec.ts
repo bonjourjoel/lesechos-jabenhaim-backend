@@ -20,7 +20,6 @@ import { UserType } from 'src/common/enums/user-type.enum';
 import { UsersController } from './users.controller';
 import { UsersService } from '../services/users.service';
 import { hashPassword } from 'src/common/utils/password-hasher.utils';
-import { loginAndReturnAccessToken } from 'src/auth/controllers/auth.controller.spec';
 
 describe('UsersController', () => {
   let app: INestApplication;
@@ -52,18 +51,18 @@ describe('UsersController', () => {
     await seedTestDatabase();
 
     // Connect as USER
-    userAccessToken = await loginAndReturnAccessToken(
-      app,
-      TEST_USER_1,
-      TEST_PASSWORD,
-    );
+    const loginResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ username: TEST_USER_1, password: TEST_PASSWORD })
+      .expect(HTTP._200_OK);
+    userAccessToken = loginResponse.body.accessToken;
 
     // Connect as ADMIN
-    adminAccessToken = await loginAndReturnAccessToken(
-      app,
-      TEST_USER_ADMIN,
-      TEST_PASSWORD,
-    );
+    const adminResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ username: TEST_USER_ADMIN, password: TEST_PASSWORD })
+      .expect(HTTP._200_OK);
+    adminAccessToken = adminResponse.body.accessToken;
   });
 
   afterAll(async () => {
@@ -101,6 +100,7 @@ describe('UsersController', () => {
       expect(response.body).toHaveLength(1); // Expect only one user due to limit=1
       expect(response.body[0].username).toEqual(TEST_USER_1); // Should return 'testuser1'
       expect(response.body[0]).not.toHaveProperty('passwordHashed');
+      expect(response.body[0]).not.toHaveProperty('refreshToken');
     });
 
     it('should allow ADMIN to paginate users and return correct users on each page', async () => {
@@ -131,6 +131,7 @@ describe('UsersController', () => {
       expect(secondUserId).not.toEqual(firstUserId); // Ensure the second page returns a different user
       expect(page2Response.body[0].username).toEqual(TEST_USER_ADMIN); // Second user should be 'adminuser'
       expect(page2Response.body[0]).not.toHaveProperty('passwordHashed');
+      expect(page2Response.body[0]).not.toHaveProperty('refreshToken');
     });
 
     it('should sort users by id in ascending order and verify the sort works correctly', async () => {
@@ -148,6 +149,7 @@ describe('UsersController', () => {
       expect(response.body[0].username).toEqual(TEST_USER_1); // First user should be 'testuser1'
       expect(response.body[1].username).toEqual(TEST_USER_ADMIN); // Second user should be 'adminuser'
       expect(response.body[0]).not.toHaveProperty('passwordHashed');
+      expect(response.body[0]).not.toHaveProperty('refreshToken');
     });
 
     it('should filter users by userType and paginate the results', async () => {
@@ -175,6 +177,7 @@ describe('UsersController', () => {
         response.body.every((user) => user.userType === UserType.USER),
       ).toBe(true); // Ensure filter by userType works (only USERs)
       expect(response.body[0]).not.toHaveProperty('passwordHashed');
+      expect(response.body[0]).not.toHaveProperty('refreshToken');
     });
 
     it('should return an empty list if no users match the filter', async () => {
@@ -221,6 +224,7 @@ describe('UsersController', () => {
       }
 
       expect(response.body[0]).not.toHaveProperty('passwordHashed');
+      expect(response.body[0]).not.toHaveProperty('refreshToken');
     });
   });
 
@@ -246,6 +250,7 @@ describe('UsersController', () => {
 
       expect(response.body).toHaveProperty('id', 1);
       expect(response.body).not.toHaveProperty('passwordHashed');
+      expect(response.body).not.toHaveProperty('refreshToken');
     });
 
     it('should allow ADMIN to access any user data', async () => {
@@ -256,6 +261,7 @@ describe('UsersController', () => {
 
       expect(response.body).toHaveProperty('id', 1);
       expect(response.body).not.toHaveProperty('passwordHashed');
+      expect(response.body).not.toHaveProperty('refreshToken');
     });
   });
 
@@ -295,6 +301,7 @@ describe('UsersController', () => {
       expect(response.body).toHaveProperty('comment', newUser.comment);
       expect(response.body).toHaveProperty('userType', newUser.userType);
       expect(response.body).not.toHaveProperty('passwordHashed');
+      expect(response.body).not.toHaveProperty('refreshToken');
     });
 
     it('should create a user and reflect it in a subsequent GET request', async () => {
@@ -320,6 +327,7 @@ describe('UsersController', () => {
       expect(getResponse.body).toHaveProperty('comment', newUser.comment);
       expect(getResponse.body).toHaveProperty('userType', newUser.userType);
       expect(getResponse.body).not.toHaveProperty('passwordHashed');
+      expect(getResponse.body).not.toHaveProperty('refreshToken');
     });
   });
 
@@ -348,6 +356,7 @@ describe('UsersController', () => {
 
       expect(response.body).toHaveProperty('name', 'Updated Name');
       expect(response.body).not.toHaveProperty('passwordHashed');
+      expect(response.body).not.toHaveProperty('refreshToken');
     });
 
     it('should allow ADMIN to update any user data', async () => {
@@ -359,6 +368,7 @@ describe('UsersController', () => {
 
       expect(response.body).toHaveProperty('name', 'Admin Updated');
       expect(response.body).not.toHaveProperty('passwordHashed');
+      expect(response.body).not.toHaveProperty('refreshToken');
     });
 
     it('should return 403 if USER tries to update userType to ADMIN', async () => {
@@ -379,6 +389,7 @@ describe('UsersController', () => {
 
       expect(response.body).toHaveProperty('userType', UserType.USER);
       expect(response.body).not.toHaveProperty('passwordHashed');
+      expect(response.body).not.toHaveProperty('refreshToken');
 
       // Test userType set to undefined
       response = await request(app.getHttpServer())
@@ -389,6 +400,7 @@ describe('UsersController', () => {
 
       expect(response.body).toHaveProperty('userType', UserType.USER); // Assuming 'USER' remains unchanged or default
       expect(response.body).not.toHaveProperty('passwordHashed');
+      expect(response.body).not.toHaveProperty('refreshToken');
     });
 
     it('should allow ADMIN to update userType to ADMIN', async () => {
@@ -400,6 +412,7 @@ describe('UsersController', () => {
 
       expect(response.body).toHaveProperty('userType', UserType.ADMIN);
       expect(response.body).not.toHaveProperty('passwordHashed');
+      expect(response.body).not.toHaveProperty('refreshToken');
     });
 
     it('should allow ADMIN to update all fields of a user at once', async () => {
@@ -424,6 +437,7 @@ describe('UsersController', () => {
       expect(response.body).toHaveProperty('comment', updatedData.comment);
       expect(response.body).toHaveProperty('userType', updatedData.userType);
       expect(response.body).not.toHaveProperty('passwordHashed');
+      expect(response.body).not.toHaveProperty('refreshToken');
     });
 
     it('should update user data and reflect the changes on a subsequent GET request', async () => {
@@ -451,6 +465,7 @@ describe('UsersController', () => {
       expect(response.body).toHaveProperty('address', updatedData.address);
       expect(response.body).toHaveProperty('comment', updatedData.comment);
       expect(response.body).not.toHaveProperty('passwordHashed');
+      expect(response.body).not.toHaveProperty('refreshToken');
     });
   });
 
@@ -476,6 +491,7 @@ describe('UsersController', () => {
 
       expect(response.body).toHaveProperty('id', 1);
       expect(response.body).not.toHaveProperty('passwordHashed');
+      expect(response.body).not.toHaveProperty('refreshToken');
     });
 
     it('should allow ADMIN to delete any user', async () => {
@@ -486,20 +502,21 @@ describe('UsersController', () => {
 
       expect(response.body).toHaveProperty('id', 2);
       expect(response.body).not.toHaveProperty('passwordHashed');
+      expect(response.body).not.toHaveProperty('refreshToken');
     });
-  });
 
-  it('should delete a user and return 404 on subsequent GET request', async () => {
-    // Perform the DELETE request to delete the user
-    await request(app.getHttpServer())
-      .delete('/users/1')
-      .set('Authorization', `Bearer ${adminAccessToken}`)
-      .expect(HTTP._200_OK);
+    it('should delete a user and return 404 on subsequent GET request', async () => {
+      // Perform the DELETE request to delete the user
+      await request(app.getHttpServer())
+        .delete('/users/1')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .expect(HTTP._200_OK);
 
-    // Perform the GET request to verify the user no longer exists
-    await request(app.getHttpServer())
-      .get('/users/1')
-      .set('Authorization', `Bearer ${adminAccessToken}`)
-      .expect(HTTP._404_NOT_FOUND);
+      // Perform the GET request to verify the user no longer exists
+      await request(app.getHttpServer())
+        .get('/users/1')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .expect(HTTP._404_NOT_FOUND);
+    });
   });
 });

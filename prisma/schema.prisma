@@ -16,11 +16,12 @@ generator client {
 }
 
 model User {
-  id             Int     @id @default(autoincrement())
-  username       String  @unique
-  passwordHashed String
-  name           String?
-  address        String?
-  comment        String?
-  userType       String
+  id                 Int     @id @default(autoincrement())
+  username           String  @unique
+  passwordHashed     String
+  name               String?
+  address            String?
+  comment            String?
+  userType           String
+  refreshTokenHashed String?
 }

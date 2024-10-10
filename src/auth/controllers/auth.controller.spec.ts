@@ -16,24 +16,9 @@ import { JwtStrategy } from '../strategies/jwt.strategy';
 import { PrismaService } from 'src/prisma/services/prisma.service';
 import { UsersService } from 'src/users/services/users.service';
 
-export async function loginAndReturnAccessToken(
-  app: INestApplication,
-  username: string,
-  password: string,
-): Promise<string> {
-  const loginDto = { username, password };
-
-  const loginResponse = await request(app.getHttpServer())
-    .post('/auth/login')
-    .send(loginDto)
-    .expect(HTTP._201_CREATED);
-
-  expect(loginResponse.body).toHaveProperty('accessToken');
-  return loginResponse.body.accessToken;
-}
-
 describe('AuthController', () => {
   let app: INestApplication;
+  let usersService: UsersService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -53,6 +38,7 @@ describe('AuthController', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    usersService = moduleFixture.get<UsersService>(UsersService);
     await app.init();
   });
 
@@ -65,11 +51,11 @@ describe('AuthController', () => {
   });
 
   it('should successfully login', async () => {
-    const accessToken: string = await loginAndReturnAccessToken(
-      app,
-      TEST_USER_1,
-      TEST_PASSWORD,
-    );
+    const loginResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ username: TEST_USER_1, password: TEST_PASSWORD })
+      .expect(HTTP._200_OK);
+    const accessToken: string = loginResponse.body.accessToken;
 
     expect(accessToken).toBeDefined();
     expect(accessToken).not.toBeNull();
@@ -100,20 +86,112 @@ describe('AuthController', () => {
       .expect(HTTP._401_UNAUTHORIZED);
   });
 
-  it('should successfully logout', async () => {
-    const accessToken: string = await loginAndReturnAccessToken(
-      app,
-      TEST_USER_1,
-      TEST_PASSWORD,
-    );
+  it('should refresh the access token using refresh token', async () => {
+    const loginResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ username: TEST_USER_1, password: TEST_PASSWORD })
+      .expect(HTTP._200_OK);
 
-    const response = await request(app.getHttpServer())
+    const refreshToken = loginResponse.body.refreshToken;
+
+    const refreshResponse = await request(app.getHttpServer())
+      .post('/auth/refresh')
+      .send({ refreshToken })
+      .expect(HTTP._200_OK);
+
+    expect(refreshResponse.body).toHaveProperty('accessToken');
+    expect(refreshResponse.body).toHaveProperty('refreshToken');
+  });
+
+  it('should successfully logout and remove the refresh token', async () => {
+    const loginResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ username: TEST_USER_1, password: TEST_PASSWORD })
+      .expect(HTTP._200_OK);
+
+    const accessToken = loginResponse.body.accessToken;
+
+    await request(app.getHttpServer())
       .delete('/auth/logout')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(HTTP._200_OK);
 
-    expect(response.body).toEqual({
-      message: 'Logout successful for userId=1',
+    const user = await usersService.findUserByUsername(TEST_USER_1, {
+      removeSensitiveInformation: false,
     });
+    expect(user.refreshTokenHashed).toBeNull();
+  });
+
+  it('should refresh the access token twice and allow logout with the latest accessToken', async () => {
+    const loginResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ username: TEST_USER_1, password: TEST_PASSWORD })
+      .expect(HTTP._200_OK);
+
+    let refreshToken = loginResponse.body.refreshToken;
+
+    const firstRefreshResponse = await request(app.getHttpServer())
+      .post('/auth/refresh')
+      .send({ refreshToken })
+      .expect(HTTP._200_OK);
+
+    refreshToken = firstRefreshResponse.body.refreshToken;
+
+    const secondRefreshResponse = await request(app.getHttpServer())
+      .post('/auth/refresh')
+      .send({ refreshToken })
+      .expect(HTTP._200_OK);
+
+    const latestAccessToken = secondRefreshResponse.body.accessToken;
+
+    await request(app.getHttpServer())
+      .delete('/auth/logout')
+      .set('Authorization', `Bearer ${latestAccessToken}`)
+      .expect(HTTP._200_OK);
+  });
+
+  it('should not allow refresh with the same refresh token after logout', async () => {
+    const loginResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ username: TEST_USER_1, password: TEST_PASSWORD })
+      .expect(HTTP._200_OK);
+
+    const refreshToken = loginResponse.body.refreshToken;
+
+    await request(app.getHttpServer())
+      .delete('/auth/logout')
+      .set('Authorization', `Bearer ${loginResponse.body.accessToken}`)
+      .expect(HTTP._200_OK);
+
+    await request(app.getHttpServer())
+      .post('/auth/refresh')
+      .send({ refreshToken })
+      .expect(HTTP._401_UNAUTHORIZED);
+  });
+
+  it('should not allow refresh with the old refresh token after a successful refresh', async () => {
+    const loginResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ username: TEST_USER_1, password: TEST_PASSWORD })
+      .expect(HTTP._200_OK);
+
+    const refreshToken = loginResponse.body.refreshToken;
+
+    const refreshResponse = await request(app.getHttpServer())
+      .post('/auth/refresh')
+      .send({ refreshToken })
+      .expect(HTTP._200_OK);
+
+    const newRefreshToken = refreshResponse.body.refreshToken;
+
+    await request(app.getHttpServer())
+      .post('/auth/refresh')
+      .send({ refreshToken })
+      .expect(HTTP._401_UNAUTHORIZED);
+
+    await request(app.getHttpServer())
+      .post('/auth/refresh')
+      .send({ refreshToken: newRefreshToken })
+      .expect(HTTP._200_OK);
   });
 });

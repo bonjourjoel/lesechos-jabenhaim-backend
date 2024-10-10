@@ -21,10 +21,12 @@ async function bootstrap() {
   const SWAGGER_ENDPOINT_NAME = 'swagger';
   const config = new DocumentBuilder()
     .setTitle('Les Echos - test dev back end - Joel Abenhaim')
-    .setDescription("Documentation de l'API")
+    .setDescription("Documentation et test de l'API RESTful")
     .setVersion('1.0')
-    .addTag('users') // add a section
-    .addTag('auth') // add a section
+    // add sections
+    .addTag('root')
+    .addTag('auth')
+    .addTag('users')
     // add a bearer token button login/logout, the jwt token will be automatically added to each request
     .addBearerAuth({
       type: 'http',

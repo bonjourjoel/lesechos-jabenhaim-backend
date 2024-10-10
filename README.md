@@ -47,7 +47,7 @@ http://localhost:3000/swagger
 - Utiliser les fonctionalités via swagger en mode connecté.
 - Se déconnecter via le bouton swagger "Authorize" en haut à droite de la fenêtre, créer un compte avec userType=USER, se logguer avec, refaire "Authorize", et tester les autorisations.
 
-## Exécuter les tests
+# Exécuter les tests
 
 ```bash
 npm run test
