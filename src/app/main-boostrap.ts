@@ -12,7 +12,7 @@ export async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Set a global prefix for all API routes
-  app.setGlobalPrefix(API_VERSION);
+  app.setGlobalPrefix(`api/${API_VERSION}`);
 
   // Configure default validation pipes
   app.useGlobalPipes(

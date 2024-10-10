@@ -1,3 +1,3 @@
-import { bootstrap } from './app/boostrap.main';
+import { bootstrap } from './app/main-boostrap';
 
 void bootstrap();
