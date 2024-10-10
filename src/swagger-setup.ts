@@ -5,7 +5,7 @@ import { INestApplication } from '@nestjs/common';
 export function buildSwaggerDocument(app: INestApplication) {
   const config = new DocumentBuilder()
     .setTitle('Les Echos - test dev back end - Joel Abenhaim')
-    .setDescription("Documentation et test de l'API RESTful")
+    .setDescription('RESTful API Documentation and Testing')
     .setVersion('1.0')
     // add sections
     .addTag('apidoc')
@@ -22,6 +22,8 @@ export function buildSwaggerDocument(app: INestApplication) {
     })
     .addSecurityRequirements('bearer')
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, config, {
+    deepScanRoutes: true, // Scans routes with global prefix
+  });
   return document;
 }

@@ -9,6 +9,7 @@ import {
 } from 'prisma/fixtures/seed-test';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { APP_GLOBAL_ROUTES_PREFIX } from 'src/main';
 import { AuthController } from 'src/auth/controllers/auth.controller';
 import { AuthService } from 'src/auth/services/auth.service';
 import { CreateUserDto } from '../dtos/create-user.dto';
@@ -44,7 +45,12 @@ describe('UsersController', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.setGlobalPrefix(APP_GLOBAL_ROUTES_PREFIX);
     await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   beforeEach(async () => {
@@ -52,40 +58,36 @@ describe('UsersController', () => {
 
     // Connect as USER
     const loginResponse = await request(app.getHttpServer())
-      .post('/auth/login')
+      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/login`)
       .send({ username: TEST_USER_1, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
     userAccessToken = loginResponse.body.accessToken;
 
     // Connect as ADMIN
     const adminResponse = await request(app.getHttpServer())
-      .post('/auth/login')
+      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/login`)
       .send({ username: TEST_USER_ADMIN, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
     adminAccessToken = adminResponse.body.accessToken;
   });
 
-  afterAll(async () => {
-    await app.close();
-  });
-
   describe('/users (GET) - List users', () => {
     it('should return 401 for unauthenticated users', async () => {
       await request(app.getHttpServer())
-        .get('/users')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users`)
         .expect(HTTP._401_UNAUTHORIZED);
     });
 
     it('should return 403 for USER role trying to access user list', async () => {
       await request(app.getHttpServer())
-        .get('/users')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users`)
         .set('Authorization', `Bearer ${userAccessToken}`)
         .expect(HTTP._403_FORBIDDEN);
     });
 
     it('should allow ADMIN to list users filtered by username, sorted by id in descending order, and paginated', async () => {
       const response = await request(app.getHttpServer())
-        .get('/users')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({
           username: TEST_USER_1, // Filter by username 'testuser1'
@@ -105,7 +107,7 @@ describe('UsersController', () => {
 
     it('should allow ADMIN to paginate users and return correct users on each page', async () => {
       const page1Response = await request(app.getHttpServer())
-        .get('/users')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({
           page: 1, // Page 1
@@ -118,7 +120,7 @@ describe('UsersController', () => {
       expect(page1Response.body[0].username).toEqual(TEST_USER_1); // First user should be 'testuser1'
 
       const page2Response = await request(app.getHttpServer())
-        .get('/users')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({
           page: 2, // Page 2
@@ -136,7 +138,7 @@ describe('UsersController', () => {
 
     it('should sort users by id in ascending order and verify the sort works correctly', async () => {
       const response = await request(app.getHttpServer())
-        .get('/users')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({
           sortBy: 'id',
@@ -154,7 +156,7 @@ describe('UsersController', () => {
 
     it('should filter users by userType and paginate the results', async () => {
       const response = await request(app.getHttpServer())
-        .get('/users')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({
           userType: USER_TYPE.USER, // Filter by userType USER
@@ -182,7 +184,7 @@ describe('UsersController', () => {
 
     it('should return an empty list if no users match the filter', async () => {
       const response = await request(app.getHttpServer())
-        .get('/users')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({
           username: 'nonexistentuser', // Filter by a non-existent username
@@ -194,7 +196,7 @@ describe('UsersController', () => {
 
     it('should return an empty list when paginating beyond the last page', async () => {
       const response = await request(app.getHttpServer())
-        .get('/users')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({
           page: 1000, // Arbitrary large page number
@@ -207,7 +209,7 @@ describe('UsersController', () => {
 
     it('should allow sorting by username in descending order and return correctly sorted users', async () => {
       const response = await request(app.getHttpServer())
-        .get('/users')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({
           sortBy: 'username',
@@ -231,20 +233,20 @@ describe('UsersController', () => {
   describe('/users/:id (GET) - Get user by ID', () => {
     it('should return 401 for unauthenticated users', async () => {
       await request(app.getHttpServer())
-        .get('/users/1')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .expect(HTTP._401_UNAUTHORIZED);
     });
 
     it('should return 403 for USER role trying to access another user', async () => {
       await request(app.getHttpServer())
-        .get('/users/2')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users/2`)
         .set('Authorization', `Bearer ${userAccessToken}`)
         .expect(HTTP._403_FORBIDDEN);
     });
 
     it('should allow USER to access their own user data', async () => {
       const response = await request(app.getHttpServer())
-        .get('/users/1')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .set('Authorization', `Bearer ${userAccessToken}`)
         .expect(HTTP._200_OK);
 
@@ -255,7 +257,7 @@ describe('UsersController', () => {
 
     it('should allow ADMIN to access any user data', async () => {
       const response = await request(app.getHttpServer())
-        .get('/users/1')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .expect(HTTP._200_OK);
 
@@ -283,14 +285,14 @@ describe('UsersController', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/users')
+        .post(`/${APP_GLOBAL_ROUTES_PREFIX}/users`)
         .send(incompleteUserData)
         .expect(HTTP._400_BAD_REQUEST);
     });
 
     it('should create a new user and return 201', async () => {
       const response = await request(app.getHttpServer())
-        .post('/users')
+        .post(`/${APP_GLOBAL_ROUTES_PREFIX}/users`)
         .send(newUser)
         .expect(HTTP._201_CREATED);
 
@@ -307,7 +309,7 @@ describe('UsersController', () => {
     it('should create a user and reflect it in a subsequent GET request', async () => {
       // First, create the new user
       const createResponse = await request(app.getHttpServer())
-        .post('/users')
+        .post(`/${APP_GLOBAL_ROUTES_PREFIX}/users`)
         .send(newUser)
         .expect(HTTP._201_CREATED);
 
@@ -315,7 +317,7 @@ describe('UsersController', () => {
 
       // Then, verify the user can be retrieved with GET
       const getResponse = await request(app.getHttpServer())
-        .get(`/users/${createdUserId}`)
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users/${createdUserId}`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .expect(HTTP._200_OK);
 
@@ -334,14 +336,14 @@ describe('UsersController', () => {
   describe('/users/:id (PUT) - Update user by ID', () => {
     it('should return 401 for unauthenticated users', async () => {
       await request(app.getHttpServer())
-        .put('/users/1')
+        .put(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .send({ name: 'Updated' })
         .expect(HTTP._401_UNAUTHORIZED);
     });
 
     it('should return 403 for USER role trying to update another user', async () => {
       await request(app.getHttpServer())
-        .put('/users/2')
+        .put(`/${APP_GLOBAL_ROUTES_PREFIX}/users/2`)
         .set('Authorization', `Bearer ${userAccessToken}`)
         .send({ name: 'Updated' })
         .expect(HTTP._403_FORBIDDEN);
@@ -349,7 +351,7 @@ describe('UsersController', () => {
 
     it('should allow USER to update their own data', async () => {
       const response = await request(app.getHttpServer())
-        .put('/users/1')
+        .put(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .set('Authorization', `Bearer ${userAccessToken}`)
         .send({ name: 'Updated Name' })
         .expect(HTTP._200_OK);
@@ -361,7 +363,7 @@ describe('UsersController', () => {
 
     it('should allow ADMIN to update any user data', async () => {
       const response = await request(app.getHttpServer())
-        .put('/users/2')
+        .put(`/${APP_GLOBAL_ROUTES_PREFIX}/users/2`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send({ name: 'Admin Updated' })
         .expect(HTTP._200_OK);
@@ -373,7 +375,7 @@ describe('UsersController', () => {
 
     it('should return 403 if USER tries to update userType to ADMIN', async () => {
       await request(app.getHttpServer())
-        .put('/users/1')
+        .put(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .set('Authorization', `Bearer ${userAccessToken}`)
         .send({ userType: USER_TYPE.ADMIN }) // USER trying to change userType to 'ADMIN'
         .expect(HTTP._403_FORBIDDEN);
@@ -382,7 +384,7 @@ describe('UsersController', () => {
     it('should allow USER to update userType to USER or undefined', async () => {
       // Test userType set to 'USER'
       let response = await request(app.getHttpServer())
-        .put('/users/1')
+        .put(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .set('Authorization', `Bearer ${userAccessToken}`)
         .send({ userType: USER_TYPE.USER })
         .expect(HTTP._200_OK);
@@ -393,7 +395,7 @@ describe('UsersController', () => {
 
       // Test userType set to undefined
       response = await request(app.getHttpServer())
-        .put('/users/1')
+        .put(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .set('Authorization', `Bearer ${userAccessToken}`)
         .send({ userType: undefined })
         .expect(HTTP._200_OK);
@@ -405,7 +407,7 @@ describe('UsersController', () => {
 
     it('should allow ADMIN to update userType to ADMIN', async () => {
       const response = await request(app.getHttpServer())
-        .put('/users/1')
+        .put(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send({ userType: USER_TYPE.ADMIN })
         .expect(HTTP._200_OK);
@@ -426,7 +428,7 @@ describe('UsersController', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .put('/users/1')
+        .put(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updatedData)
         .expect(HTTP._200_OK);
@@ -449,14 +451,14 @@ describe('UsersController', () => {
 
       // Perform the PUT request to update the user
       await request(app.getHttpServer())
-        .put('/users/1')
+        .put(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updatedData)
         .expect(HTTP._200_OK);
 
       // Perform the GET request to verify the updated data
       const response = await request(app.getHttpServer())
-        .get('/users/1')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .expect(HTTP._200_OK);
 
@@ -472,20 +474,20 @@ describe('UsersController', () => {
   describe('/users/:id (DELETE) - Delete user by ID', () => {
     it('should return 401 for unauthenticated users', async () => {
       await request(app.getHttpServer())
-        .delete('/users/1')
+        .delete(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .expect(HTTP._401_UNAUTHORIZED);
     });
 
     it('should return 403 for USER role trying to delete another user', async () => {
       await request(app.getHttpServer())
-        .delete('/users/2')
+        .delete(`/${APP_GLOBAL_ROUTES_PREFIX}/users/2`)
         .set('Authorization', `Bearer ${userAccessToken}`)
         .expect(HTTP._403_FORBIDDEN);
     });
 
     it('should allow USER to delete their own data', async () => {
       const response = await request(app.getHttpServer())
-        .delete('/users/1')
+        .delete(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .set('Authorization', `Bearer ${userAccessToken}`)
         .expect(HTTP._200_OK);
 
@@ -496,7 +498,7 @@ describe('UsersController', () => {
 
     it('should allow ADMIN to delete any user', async () => {
       const response = await request(app.getHttpServer())
-        .delete('/users/2')
+        .delete(`/${APP_GLOBAL_ROUTES_PREFIX}/users/2`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .expect(HTTP._200_OK);
 
@@ -508,13 +510,13 @@ describe('UsersController', () => {
     it('should delete a user and return 404 on subsequent GET request', async () => {
       // Perform the DELETE request to delete the user
       await request(app.getHttpServer())
-        .delete('/users/1')
+        .delete(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .expect(HTTP._200_OK);
 
       // Perform the GET request to verify the user no longer exists
       await request(app.getHttpServer())
-        .get('/users/1')
+        .get(`/${APP_GLOBAL_ROUTES_PREFIX}/users/1`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .expect(HTTP._404_NOT_FOUND);
     });

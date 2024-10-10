@@ -1,4 +1,5 @@
 import { AppModule } from './app.module';
+import { NODE_ENV } from './common/enums/node-env.enum';
 import { NestFactory } from '@nestjs/core';
 import { OpenApiGeneratorService } from './apidoc/services/openapi-generator.service';
 import { SwaggerModule } from '@nestjs/swagger';
@@ -6,9 +7,14 @@ import { ValidationPipe } from '@nestjs/common';
 import { buildSwaggerDocument } from './swagger-setup';
 import helmet from 'helmet';
 
+export const APP_GLOBAL_ROUTES_PREFIX = 'v1';
+
 async function bootstrap() {
-  // create nest.js app
+  // Create nest.js app
   const app = await NestFactory.create(AppModule);
+
+  // Set a global prefix for all API routes
+  app.setGlobalPrefix(APP_GLOBAL_ROUTES_PREFIX);
 
   // Configure default validation pipes
   app.useGlobalPipes(
@@ -31,7 +37,7 @@ async function bootstrap() {
   const openApiGeneratorService = app.get(OpenApiGeneratorService);
   openApiGeneratorService.initialize(app);
 
-  // start app
+  // Start app
   await app.listen(process.env.HTTP_PORT);
 
   console.log('NODE_ENV:', process.env.NODE_ENV);
@@ -41,4 +47,6 @@ async function bootstrap() {
   );
 }
 
-void bootstrap();
+if (process.env.NODE_ENV !== NODE_ENV.TEST) {
+  void bootstrap();
+}
