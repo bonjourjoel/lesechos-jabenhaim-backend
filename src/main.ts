@@ -4,6 +4,7 @@ import { OpenApiGeneratorService } from './apidoc/services/openapi-generator.ser
 import { SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { buildSwaggerDocument } from './swagger-setup';
+import helmet from 'helmet';
 
 async function bootstrap() {
   // create nest.js app
@@ -17,6 +18,9 @@ async function bootstrap() {
       forbidNonWhitelisted: true, // Returns an error if unspecified properties are present
     }),
   );
+
+  // Use Helmet middleware to add HTTP headers for security
+  app.use(helmet());
 
   // Configure Swagger
   const SWAGGER_ENDPOINT_NAME = 'swagger';
