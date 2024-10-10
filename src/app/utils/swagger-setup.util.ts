@@ -1,6 +1,6 @@
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-import { API_VERSION } from './const';
+import { API_VERSION } from '../consts/app-const';
 import { INestApplication } from '@nestjs/common';
 
 export function buildSwaggerDocument(app: INestApplication) {

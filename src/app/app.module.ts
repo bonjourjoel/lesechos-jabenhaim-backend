@@ -2,16 +2,16 @@ import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { APP_GUARD } from '@nestjs/core';
-import { ApidocModule } from './apidoc/apidoc.module';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
+import { ApidocModule } from 'src/apidoc/apidoc.module';
+import { AppController } from './controllers/app.controller';
+import { AppService } from './services/app.service';
+import { AuthModule } from 'src/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { MultipartJsonMiddleware } from './middlewares/multipart-json.middleware';
-import { PrismaModule } from './prisma/prisma.module';
-import { PrismaService } from './prisma/services/prisma.service';
+import { PrismaModule } from 'src/prisma/prisma.module';
+import { PrismaService } from 'src/prisma/services/prisma.service';
 import { SanitizeMiddleware } from './middlewares/sanitize.middleware';
-import { UsersModule } from './users/users.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [

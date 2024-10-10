@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
-import { buildSwaggerDocument } from 'src/swagger-setup';
+import { buildSwaggerDocument } from 'src/app/utils/swagger-setup.util';
 
 @Injectable()
 export class OpenApiGeneratorService {
