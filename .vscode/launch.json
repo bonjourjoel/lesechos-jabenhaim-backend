@@ -7,7 +7,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "start:dev",
+      "name": "Debug start:dev",
       "program": "${workspaceFolder}/node_modules/@nestjs/cli/bin/nest.js",
       "args": ["start", "--watch"],
       "envFile": "${workspaceFolder}/.env.local",
@@ -21,12 +21,13 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug Jest Tests with Dotenv",
+      "name": "Debug Jest Tests",
       "program": "${workspaceFolder}/node_modules/jest/bin/jest",
       "args": ["--bail=1", "--runInBand"],
       "env": {
         "DOTENV_CONFIG_PATH": ".env.test"
       },
+      "preLaunchTask": "prisma-deploy-test",
       "runtimeArgs": ["-r", "dotenv/config"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",

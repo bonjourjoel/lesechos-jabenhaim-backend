@@ -228,6 +228,38 @@ describe('UsersController', () => {
       expect(response.body[0]).not.toHaveProperty('passwordHashed');
       expect(response.body[0]).not.toHaveProperty('refreshToken');
     });
+
+    // Test with invalid token
+    it('should return 401 for GET /users with an invalid access token', async () => {
+      const invalidToken = 'invalid.jwt.token';
+
+      await request(app.getHttpServer())
+        .get('/users')
+        .set('Authorization', `Bearer ${invalidToken}`)
+        .expect(HTTP._401_UNAUTHORIZED); // Expect 401 for invalid token
+    });
+
+    // Test with valid token after refresh
+    it('should allow GET /users after refreshing access token', async () => {
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: TEST_USER_ADMIN, password: TEST_PASSWORD })
+        .expect(HTTP._200_OK);
+
+      const refreshToken = loginResponse.body.refreshToken;
+
+      const refreshResponse = await request(app.getHttpServer())
+        .post('/auth/refresh')
+        .send({ refreshToken })
+        .expect(HTTP._200_OK);
+
+      const newAccessToken = refreshResponse.body.accessToken;
+
+      await request(app.getHttpServer())
+        .get('/users')
+        .set('Authorization', `Bearer ${newAccessToken}`)
+        .expect(HTTP._200_OK); // Expect 200 after successful refresh
+    });
   });
 
   describe('/users/:id (GET) - Get user by ID', () => {
@@ -242,6 +274,13 @@ describe('UsersController', () => {
         .get('/users/2')
         .set('Authorization', `Bearer ${userAccessToken}`)
         .expect(HTTP._403_FORBIDDEN);
+    });
+
+    it('should return 404 for non-existent user ID', async () => {
+      await request(app.getHttpServer())
+        .get('/users/3')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .expect(HTTP._404_NOT_FOUND); // Expecting a 404 Not Found for non-existent user
     });
 
     it('should allow USER to access their own user data', async () => {
@@ -264,6 +303,38 @@ describe('UsersController', () => {
       expect(response.body).toHaveProperty('id', 1);
       expect(response.body).not.toHaveProperty('passwordHashed');
       expect(response.body).not.toHaveProperty('refreshToken');
+    });
+
+    // Test with invalid token
+    it('should return 401 for GET /users/:id with an invalid access token', async () => {
+      const invalidToken = 'invalid.jwt.token';
+
+      await request(app.getHttpServer())
+        .get('/users/1')
+        .set('Authorization', `Bearer ${invalidToken}`)
+        .expect(HTTP._401_UNAUTHORIZED); // Expect 401 for invalid token
+    });
+
+    // Test with valid token after refresh
+    it('should allow GET /users/:id after refreshing access token', async () => {
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: TEST_USER_ADMIN, password: TEST_PASSWORD })
+        .expect(HTTP._200_OK);
+
+      const refreshToken = loginResponse.body.refreshToken;
+
+      const refreshResponse = await request(app.getHttpServer())
+        .post('/auth/refresh')
+        .send({ refreshToken })
+        .expect(HTTP._200_OK);
+
+      const newAccessToken = refreshResponse.body.accessToken;
+
+      await request(app.getHttpServer())
+        .get('/users/1')
+        .set('Authorization', `Bearer ${newAccessToken}`)
+        .expect(HTTP._200_OK); // Expect 200 after successful refresh
     });
   });
 
@@ -288,6 +359,22 @@ describe('UsersController', () => {
         .post('/users')
         .send(incompleteUserData)
         .expect(HTTP._400_BAD_REQUEST);
+    });
+
+    it('should return 500 when trying to create a user with an existing username', async () => {
+      const existingUserData = {
+        username: TEST_USER_1, // Username already exists
+        password: 'newpassword',
+        name: 'Duplicate User',
+        address: '789 Another St',
+        comment: 'Trying to create a duplicate user',
+        userType: USER_TYPE.USER,
+      };
+
+      await request(app.getHttpServer())
+        .post('/users')
+        .send(existingUserData)
+        .expect(HTTP._500_INTERNAL_SERVER_ERROR); // Expecting a 500 Internal Server Error due to unique constraint violation
     });
 
     it('should create a new user and return 201', async () => {
@@ -347,6 +434,33 @@ describe('UsersController', () => {
         .set('Authorization', `Bearer ${userAccessToken}`)
         .send({ name: 'Updated' })
         .expect(HTTP._403_FORBIDDEN);
+    });
+
+    it('should return 404 when trying to update a non-existent user', async () => {
+      const updatedData = {
+        name: 'Non-existent User',
+        address: '123 Nowhere St',
+      };
+
+      await request(app.getHttpServer())
+        .put('/users/999') // Attempt to update a non-existent user with ID 999
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updatedData)
+        .expect(HTTP._404_NOT_FOUND); // Expecting a 404 Not Found as the user doesn't exist
+    });
+
+    it('should return 500 when trying to update a user with an existing username', async () => {
+      const updatedData = {
+        username: TEST_USER_ADMIN, // Username already exists in another user
+        name: 'Updated User',
+        address: '789 New St',
+      };
+
+      await request(app.getHttpServer())
+        .put('/users/1') // Attempt to update user with ID 1
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updatedData)
+        .expect(HTTP._500_INTERNAL_SERVER_ERROR); // Expecting a 500 Internal Server Error due to unique constraint violation
     });
 
     it('should allow USER to update their own data', async () => {
@@ -539,6 +653,103 @@ describe('UsersController', () => {
         .send(invalidData)
         .expect(HTTP._400_BAD_REQUEST); // Should return validation error
     });
+
+    it('should not modify fields that are not included in the update request', async () => {
+      const originalUser = await usersService.findUserById(1);
+
+      const updatedData = {
+        address: 'Updated Address',
+      };
+
+      const response = await request(app.getHttpServer())
+        .put('/users/1')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updatedData)
+        .expect(HTTP._200_OK);
+
+      // Verify that only the 'address' is updated
+      expect(response.body).toHaveProperty('address', updatedData.address);
+      expect(response.body).toHaveProperty('name', originalUser.name); // Name remains unchanged
+    });
+
+    it('should not allow updating non-modifiable fields such as id, passwordHashed, and refreshTokenHashed', async () => {
+      // Load the original user from the database
+      const originalUser = await usersService.findUserById(1);
+
+      const updatedData = {
+        id: 999, // Attempting to modify the ID, which should not be allowed
+        passwordHashed: 'newhashedpassword', // Attempting to modify passwordHashed, which should not be allowed
+        refreshTokenHashed: 'abcd', // Attempting to modify refreshTokenHashed, which should not be allowed
+        address: 'Updated Address', // Modifiable field
+      };
+
+      // Perform the update request
+      await request(app.getHttpServer())
+        .put('/users/1')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updatedData)
+        .expect(HTTP._200_OK); // Update succeeds (only for modifiable fields)
+
+      // Reload the user from the database after the update
+      const updatedUser = await usersService.findUserById(1);
+
+      // Ensure the ID was not modified
+      expect(updatedUser.id).toBe(originalUser.id); // ID should remain unchanged
+
+      // Ensure the passwordHashed was not modified
+      expect(updatedUser.passwordHashed).toBe(originalUser.passwordHashed); // passwordHashed should remain unchanged
+
+      // Ensure the refreshTokenHashed was not modified
+      expect(updatedUser.refreshTokenHashed).toBe(
+        originalUser.refreshTokenHashed,
+      ); // refreshTokenHashed should remain unchanged
+
+      // Ensure the address was updated
+      expect(updatedUser.address).toBe(updatedData.address); // Address should be updated
+    });
+
+    // Test with invalid token
+    it('should return 401 for PUT /users/:id with an invalid access token', async () => {
+      const invalidToken = 'invalid.jwt.token';
+      const updatedData = {
+        name: 'New Name',
+        address: 'Updated Address',
+      };
+
+      await request(app.getHttpServer())
+        .put('/users/1')
+        .set('Authorization', `Bearer ${invalidToken}`)
+        .send(updatedData)
+        .expect(HTTP._401_UNAUTHORIZED); // Expect 401 for invalid token
+    });
+
+    // Test with valid token after refresh
+    it('should allow PUT /users/:id after refreshing access token', async () => {
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: TEST_USER_ADMIN, password: TEST_PASSWORD })
+        .expect(HTTP._200_OK);
+
+      const refreshToken = loginResponse.body.refreshToken;
+
+      const refreshResponse = await request(app.getHttpServer())
+        .post('/auth/refresh')
+        .send({ refreshToken })
+        .expect(HTTP._200_OK);
+
+      const newAccessToken = refreshResponse.body.accessToken;
+
+      const updatedData = {
+        name: 'Updated Name',
+        address: 'Updated Address',
+      };
+
+      await request(app.getHttpServer())
+        .put('/users/1')
+        .set('Authorization', `Bearer ${newAccessToken}`)
+        .send(updatedData)
+        .expect(HTTP._200_OK); // Expect 200 after successful refresh
+    });
   });
 
   describe('/users/:id (DELETE) - Delete user by ID', () => {
@@ -553,6 +764,13 @@ describe('UsersController', () => {
         .delete('/users/2')
         .set('Authorization', `Bearer ${userAccessToken}`)
         .expect(HTTP._403_FORBIDDEN);
+    });
+
+    it('should return 404 when trying to delete a non-existent user', async () => {
+      await request(app.getHttpServer())
+        .delete('/users/999') // Attempt to delete a non-existent user with ID 999
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .expect(HTTP._404_NOT_FOUND); // Expecting a 404 Not Found as the user doesn't exist
     });
 
     it('should allow USER to delete their own data', async () => {
@@ -589,6 +807,38 @@ describe('UsersController', () => {
         .get('/users/1')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .expect(HTTP._404_NOT_FOUND);
+    });
+
+    // Test with invalid token
+    it('should return 401 for DELETE /users/:id with an invalid access token', async () => {
+      const invalidToken = 'invalid.jwt.token';
+
+      await request(app.getHttpServer())
+        .delete('/users/1')
+        .set('Authorization', `Bearer ${invalidToken}`)
+        .expect(HTTP._401_UNAUTHORIZED); // Expect 401 for invalid token
+    });
+
+    // Test with valid token after refresh
+    it('should allow DELETE /users/:id after refreshing access token', async () => {
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: TEST_USER_ADMIN, password: TEST_PASSWORD })
+        .expect(HTTP._200_OK);
+
+      const refreshToken = loginResponse.body.refreshToken;
+
+      const refreshResponse = await request(app.getHttpServer())
+        .post('/auth/refresh')
+        .send({ refreshToken })
+        .expect(HTTP._200_OK);
+
+      const newAccessToken = refreshResponse.body.accessToken;
+
+      await request(app.getHttpServer())
+        .delete('/users/1')
+        .set('Authorization', `Bearer ${newAccessToken}`)
+        .expect(HTTP._200_OK); // Expect 200 after successful refresh
     });
   });
 });

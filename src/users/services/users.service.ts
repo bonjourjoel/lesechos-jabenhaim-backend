@@ -100,6 +100,8 @@ export class UsersService {
       ? await hashPassword(userData.password)
       : undefined;
     const userTypeAsString: string = userData.userType?.toString();
+    delete userData.id;
+    delete (userData as any).refreshTokenHashed;
 
     try {
       const user = await this.prisma.user.update({

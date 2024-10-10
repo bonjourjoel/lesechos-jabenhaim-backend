@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "prisma-deploy-test",
+      "type": "shell",
+      "command": "npx dotenv -e .env.test -- prisma migrate deploy",
+      "problemMatcher": []
+    }
+  ]
+}
