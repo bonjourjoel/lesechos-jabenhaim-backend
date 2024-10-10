@@ -1,9 +1,12 @@
 import { API_VERSION } from './consts/app-const';
+import { AllExceptionsLoggerFilter } from 'src/logger/filters/log-all-exceptions.filter';
 import { AppModule } from './app.module';
+import { Logger } from 'winston';
 import { NestFactory } from '@nestjs/core';
 import { OpenApiGeneratorService } from '../apidoc/services/openapi-generator.service';
 import { SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { buildSwaggerDocument } from './utils/swagger-setup.util';
 import helmet from 'helmet';
 
@@ -23,7 +26,14 @@ export async function bootstrap() {
     }),
   );
 
-  // Use Helmet middleware to add HTTP headers for security
+  // Initialize the Logger middleware error filter globally
+  app.useGlobalFilters(app.get(AllExceptionsLoggerFilter));
+
+  // Test the logger
+  const logger = app.get<Logger>(WINSTON_MODULE_PROVIDER);
+  logger.info('Logger initialzed');
+
+  // Use Helmet middleware globally to add HTTP headers for security
   app.use(helmet());
 
   // Configure Swagger

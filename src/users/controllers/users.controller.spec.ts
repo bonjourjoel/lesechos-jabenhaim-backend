@@ -25,6 +25,7 @@ describe('UsersController', () => {
   let app: INestApplication;
   let userAccessToken: string;
   let adminAccessToken: string;
+  let usersService: UsersService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -44,6 +45,7 @@ describe('UsersController', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    usersService = app.get(UsersService);
     await app.init();
   });
 
@@ -466,6 +468,76 @@ describe('UsersController', () => {
       expect(response.body).toHaveProperty('comment', updatedData.comment);
       expect(response.body).not.toHaveProperty('passwordHashed');
       expect(response.body).not.toHaveProperty('refreshToken');
+    });
+
+    // Test: Keep a field unchanged if undefined is passed and update other fields with provided values
+    it('should keep a field unchanged if undefined is passed, and update other fields with provided values', async () => {
+      const originalUser = await usersService.findUserById(1);
+
+      const updatedData = {
+        name: undefined, // Name should remain unchanged
+        address: 'Updated Address',
+      };
+
+      const response = await request(app.getHttpServer())
+        .put('/users/1')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updatedData)
+        .expect(HTTP._200_OK);
+
+      expect(response.body).toHaveProperty('name', originalUser.name); // Name should remain unchanged
+      expect(response.body).toHaveProperty('address', updatedData.address); // Address should be updated
+    });
+
+    // Test: Set a field to null if null is passed
+    it('should set a field to null if null is passed', async () => {
+      const updatedData = {
+        comment: null, // Comment should be set to null
+      };
+
+      const response = await request(app.getHttpServer())
+        .put('/users/1')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updatedData)
+        .expect(HTTP._200_OK);
+
+      expect(response.body).toHaveProperty('comment', null); // Comment should now be null
+    });
+
+    // Test: Ensure sensitive fields are not modifiable
+    it('should not allow modifying sensitive fields such as passwordHashed or refreshTokenHashed', async () => {
+      const updatedData = {
+        passwordHashed: 'newhashedpassword',
+        refreshTokenHashed: 'newrefreshtoken',
+      };
+
+      await request(app.getHttpServer())
+        .put('/users/1')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updatedData)
+        .expect(HTTP._200_OK);
+
+      // Retrieve the user after the update to verify sensitive fields were not modified
+      const updatedUser = await usersService.findUserById(1);
+
+      expect(updatedUser.passwordHashed).not.toBe(updatedData.passwordHashed); // Password should remain unchanged
+      expect(updatedUser.refreshTokenHashed).not.toBe(
+        updatedData.refreshTokenHashed,
+      ); // Refresh token should remain unchanged
+    });
+
+    // Test: Validate that fields follow required validation rules
+    it('should return 400 if validation rules for fields are not met', async () => {
+      const invalidData = {
+        username: ' ', // Bad username
+        address: 'Valid address',
+      };
+
+      await request(app.getHttpServer())
+        .put('/users/1')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(invalidData)
+        .expect(HTTP._400_BAD_REQUEST); // Should return validation error
     });
   });
 

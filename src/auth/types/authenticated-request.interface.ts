@@ -1,3 +1,5 @@
+import { Request } from 'express';
+
 /**
  * Use in controllers like this to get strong typings:
  *    @POST

@@ -1,6 +1,7 @@
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { USER_TYPE } from 'src/common/enums/user-type.enum';
 
 export class UpdateUserDto {
@@ -10,6 +11,8 @@ export class UpdateUserDto {
     required: false,
   })
   @IsString()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty({ message: 'Username should not be empty' })
   @IsOptional()
   username?: string;
 

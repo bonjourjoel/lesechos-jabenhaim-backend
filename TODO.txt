@@ -2,11 +2,11 @@
 
 OK Ajouter un système de refresh token JWT
 Ajouter RabbitMQ et séparer les microservice auth et la lib common
-Ajouter un système de logs serveurs du type MEZMO
+OK Ajouter un système de logs serveurs du type MEZMO
 OK ajouter un .env pour la production
 Ajouter un Dockerfile
 Ajouter une pipeline CI/CD avec github action, avec un repository docker, avec un environnement cloud
-Ajouter kubernetes pour scaler
+Ajouter kubernetes pour scaler (OU serverless)
 OK Ajouter plein de tests unitaires, intégration
 Intégrer les tests dans la pipeline CI
 Ajouter plusieurs environnements dev/stage/prod

@@ -1,12 +1,14 @@
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { USER_TYPE } from 'src/common/enums/user-type.enum';
 
 export class CreateUserDto {
   @ApiProperty({ description: 'Username of the user', example: 'username' })
   @IsString()
-  @IsNotEmpty()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty({ message: 'Username should not be empty' })
   username: string;
 
   @ApiProperty({ description: 'Password of the user', example: 'password' })

@@ -7,7 +7,10 @@ import { hashPassword } from 'src/common/utils/password-hasher.utils';
 import { hashToken } from 'src/common/utils/token-hasher.utils';
 import { prismaErrorMiddleware } from 'src/common/utils/prisma-error-middleware.utils';
 
-type UserWithoutPassword = Omit<User, 'passwordHashed'>;
+type UserWithoutSensitiveInfo = Omit<
+  User,
+  'passwordHashed' | 'refreshTokenHashed'
+>;
 
 @Injectable()
 export class UsersService {
@@ -32,7 +35,7 @@ export class UsersService {
     return sanitizedUser;
   }
 
-  async createUser(userData: IUser): Promise<UserWithoutPassword> {
+  async createUser(userData: IUser): Promise<UserWithoutSensitiveInfo> {
     const passwordHashed: string = await hashPassword(userData.password);
     const userTypeAsString: string = userData.userType.toString();
 
@@ -54,7 +57,7 @@ export class UsersService {
   async findUserById(
     id: number,
     options?: { removeSensitiveInformation?: boolean /* default: true */ },
-  ): Promise<UserWithoutPassword> {
+  ): Promise<User> {
     try {
       const user = await this.prisma.user.findUniqueOrThrow({
         where: { id },
@@ -92,7 +95,7 @@ export class UsersService {
   async updateUser(
     id: number,
     userData: Partial<IUser>,
-  ): Promise<UserWithoutPassword> {
+  ): Promise<UserWithoutSensitiveInfo> {
     const passwordHashed: string = userData.password
       ? await hashPassword(userData.password)
       : undefined;
@@ -114,7 +117,7 @@ export class UsersService {
     }
   }
 
-  async deleteUser(id: number): Promise<UserWithoutPassword> {
+  async deleteUser(id: number): Promise<UserWithoutSensitiveInfo> {
     try {
       const user = await this.prisma.user.delete({
         where: { id },
@@ -126,7 +129,9 @@ export class UsersService {
     }
   }
 
-  async findAllUsers(query: GetUsersQueryDto): Promise<UserWithoutPassword[]> {
+  async findAllUsers(
+    query: GetUsersQueryDto,
+  ): Promise<UserWithoutSensitiveInfo[]> {
     // compute filter
     const where: any = {};
     if (query.username) {
