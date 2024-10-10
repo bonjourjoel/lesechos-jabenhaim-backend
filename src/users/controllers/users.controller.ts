@@ -23,7 +23,7 @@ import {
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { HTTP } from 'src/common/enums/http-status-code.enum';
-import { UserType } from 'src/common/enums/user-type.enum';
+import { USER_TYPE } from 'src/common/enums/user-type.enum';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { GetUsersQueryDto } from '../dtos/get-users-query.dto';
 import { UserDto } from '../dtos/user.dto';
@@ -39,7 +39,7 @@ export class UsersController {
 
   @Get()
   @UsePipes(new ValidationPipe({ transform: true }))
-  @UseGuards(new JwtAuthGuard(), new RolesGuard(UserType.ADMIN))
+  @UseGuards(new JwtAuthGuard(), new RolesGuard(USER_TYPE.ADMIN))
   @ApiOperation({
     summary:
       'Retrieve users with optional filters, sorting, and pagination  [Authorization: authenticated & ADMIN]',
@@ -57,7 +57,7 @@ export class UsersController {
   @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
   @ApiOperation({
     summary:
-      'Retrieve a user by ID [Authorization: authenticated & (ADMIN | own_user)]',
+      'Retrieve a user by ID [Authorization: authenticated & (ADMIN | self_id)]',
   })
   @ApiResponse({
     status: HTTP._200_OK,
@@ -98,7 +98,7 @@ export class UsersController {
   @ApiConsumes('multipart/form-data', 'application/json')
   @ApiOperation({
     summary:
-      'Update a user by ID [Authorization: authenticated & (ADMIN | own_user)]',
+      'Update a user by ID [Authorization: authenticated & (ADMIN | self_id)]',
   })
   @ApiBody({ type: UpdateUserDto, description: 'User fields to update' })
   @ApiResponse({
@@ -114,8 +114,8 @@ export class UsersController {
   ): Promise<UserDto> {
     // If the user has role USER, check if they are trying to update userType to anything other than 'USER', null, or undefined
     if (
-      req.user.userType !== UserType.ADMIN &&
-      body.userType === UserType.ADMIN
+      req.user.userType !== USER_TYPE.ADMIN &&
+      body.userType === USER_TYPE.ADMIN
     ) {
       throw new ForbiddenException(
         'Only admins can change user type to ADMIN.',
@@ -132,7 +132,7 @@ export class UsersController {
   @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
   @ApiOperation({
     summary:
-      'Delete a user by ID [Authorization: authenticated & (ADMIN | own_user)] [Authorization to set userType=ADMIN: ADMIN]',
+      'Delete a user by ID [Authorization: authenticated & (ADMIN | self_id)] [Authorization to set userType=ADMIN: ADMIN]',
   })
   @ApiResponse({
     status: HTTP._200_OK,

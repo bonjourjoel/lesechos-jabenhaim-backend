@@ -1,4 +1,4 @@
-import { UserType } from 'src/common/enums/user-type.enum';
+import { USER_TYPE } from 'src/common/enums/user-type.enum';
 
 export interface IUser {
   id?: number;
@@ -7,5 +7,5 @@ export interface IUser {
   name?: string;
   address?: string;
   comment?: string;
-  userType: UserType;
+  userType: USER_TYPE;
 }

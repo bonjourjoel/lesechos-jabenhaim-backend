@@ -5,16 +5,16 @@ import {
   Injectable,
 } from '@nestjs/common';
 
-import { UserType } from 'src/common/enums/user-type.enum';
+import { USER_TYPE } from 'src/common/enums/user-type.enum';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  private readonly allowedRoles: UserType[];
+  private readonly allowedRoles: USER_TYPE[];
 
-  constructor(...allowedRoles: UserType[]) {
+  constructor(...allowedRoles: USER_TYPE[]) {
     // if no allowed roles specified, allow all by default
     this.allowedRoles =
-      allowedRoles.length > 0 ? allowedRoles : Object.values(UserType);
+      allowedRoles.length > 0 ? allowedRoles : Object.values(USER_TYPE);
   }
 
   /**

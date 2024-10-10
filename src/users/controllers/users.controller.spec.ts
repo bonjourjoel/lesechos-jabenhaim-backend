@@ -16,7 +16,7 @@ import { HTTP } from 'src/common/enums/http-status-code.enum';
 import { INestApplication } from '@nestjs/common';
 import { JwtStrategy } from 'src/auth/strategies/jwt.strategy';
 import { PrismaService } from 'src/prisma/services/prisma.service';
-import { UserType } from 'src/common/enums/user-type.enum';
+import { USER_TYPE } from 'src/common/enums/user-type.enum';
 import { UsersController } from './users.controller';
 import { UsersService } from '../services/users.service';
 import { hashPassword } from 'src/common/utils/password-hasher.utils';
@@ -157,7 +157,7 @@ describe('UsersController', () => {
         .get('/users')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({
-          userType: UserType.USER, // Filter by userType USER
+          userType: USER_TYPE.USER, // Filter by userType USER
           sortBy: 'username', // Sort by username
           sortDir: 'desc', // Descending order
           page: 1, // First page
@@ -174,7 +174,7 @@ describe('UsersController', () => {
       }
 
       expect(
-        response.body.every((user) => user.userType === UserType.USER),
+        response.body.every((user) => user.userType === USER_TYPE.USER),
       ).toBe(true); // Ensure filter by userType works (only USERs)
       expect(response.body[0]).not.toHaveProperty('passwordHashed');
       expect(response.body[0]).not.toHaveProperty('refreshToken');
@@ -272,7 +272,7 @@ describe('UsersController', () => {
       name: 'New User',
       address: '123 New St',
       comment: 'This is a new user',
-      userType: UserType.USER,
+      userType: USER_TYPE.USER,
     };
 
     it('should return 400 if validation fails', async () => {
@@ -375,7 +375,7 @@ describe('UsersController', () => {
       await request(app.getHttpServer())
         .put('/users/1')
         .set('Authorization', `Bearer ${userAccessToken}`)
-        .send({ userType: UserType.ADMIN }) // USER trying to change userType to 'ADMIN'
+        .send({ userType: USER_TYPE.ADMIN }) // USER trying to change userType to 'ADMIN'
         .expect(HTTP._403_FORBIDDEN);
     });
 
@@ -384,10 +384,10 @@ describe('UsersController', () => {
       let response = await request(app.getHttpServer())
         .put('/users/1')
         .set('Authorization', `Bearer ${userAccessToken}`)
-        .send({ userType: UserType.USER })
+        .send({ userType: USER_TYPE.USER })
         .expect(HTTP._200_OK);
 
-      expect(response.body).toHaveProperty('userType', UserType.USER);
+      expect(response.body).toHaveProperty('userType', USER_TYPE.USER);
       expect(response.body).not.toHaveProperty('passwordHashed');
       expect(response.body).not.toHaveProperty('refreshToken');
 
@@ -398,7 +398,7 @@ describe('UsersController', () => {
         .send({ userType: undefined })
         .expect(HTTP._200_OK);
 
-      expect(response.body).toHaveProperty('userType', UserType.USER); // Assuming 'USER' remains unchanged or default
+      expect(response.body).toHaveProperty('userType', USER_TYPE.USER); // Assuming 'USER' remains unchanged or default
       expect(response.body).not.toHaveProperty('passwordHashed');
       expect(response.body).not.toHaveProperty('refreshToken');
     });
@@ -407,10 +407,10 @@ describe('UsersController', () => {
       const response = await request(app.getHttpServer())
         .put('/users/1')
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send({ userType: UserType.ADMIN })
+        .send({ userType: USER_TYPE.ADMIN })
         .expect(HTTP._200_OK);
 
-      expect(response.body).toHaveProperty('userType', UserType.ADMIN);
+      expect(response.body).toHaveProperty('userType', USER_TYPE.ADMIN);
       expect(response.body).not.toHaveProperty('passwordHashed');
       expect(response.body).not.toHaveProperty('refreshToken');
     });
@@ -422,7 +422,7 @@ describe('UsersController', () => {
         name: 'Updated Full Name',
         address: '789 New Address',
         comment: 'Updated comment by admin',
-        userType: UserType.ADMIN,
+        userType: USER_TYPE.ADMIN,
       };
 
       const response = await request(app.getHttpServer())

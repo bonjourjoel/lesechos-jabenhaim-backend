@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 
-import { UserType } from 'src/common/enums/user-type.enum';
+import { USER_TYPE } from 'src/common/enums/user-type.enum';
 
 @Injectable()
 export class OwnUserGuard implements CanActivate {
@@ -19,7 +19,7 @@ export class OwnUserGuard implements CanActivate {
     const { id } = request.params;
 
     // Allow access if the user is an admin or if the userId matches
-    if (user.userType === UserType.ADMIN || user.userId === Number(id)) {
+    if (user.userType === USER_TYPE.ADMIN || user.userId === Number(id)) {
       return true; // Allow access
     }
 

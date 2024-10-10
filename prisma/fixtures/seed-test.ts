@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { UserType } from 'src/common/enums/user-type.enum';
+import { USER_TYPE } from 'src/common/enums/user-type.enum';
 import { hashPassword } from 'src/common/utils/password-hasher.utils';
 
 export const TEST_USER_1 = 'testuser1';
@@ -23,7 +23,7 @@ export async function seedTestDatabase() {
           name: 'Test User One',
           address: '123 Main St',
           comment: 'First test user',
-          userType: UserType.USER,
+          userType: USER_TYPE.USER,
         },
         {
           username: TEST_USER_ADMIN,
@@ -31,7 +31,7 @@ export async function seedTestDatabase() {
           name: 'Admin User',
           address: '456 Admin Rd',
           comment: 'Administrator user',
-          userType: UserType.ADMIN,
+          userType: USER_TYPE.ADMIN,
         },
       ],
     });

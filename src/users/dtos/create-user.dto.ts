@@ -1,7 +1,7 @@
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
-import { UserType } from 'src/common/enums/user-type.enum';
+import { USER_TYPE } from 'src/common/enums/user-type.enum';
 
 export class CreateUserDto {
   @ApiProperty({ description: 'Username of the user', example: 'username' })
@@ -43,10 +43,10 @@ export class CreateUserDto {
 
   @ApiProperty({
     description: 'Type of the user',
-    enum: UserType,
-    example: UserType.USER,
+    enum: USER_TYPE,
+    example: USER_TYPE.USER,
   })
-  @IsEnum(UserType)
+  @IsEnum(USER_TYPE)
   @IsNotEmpty()
-  userType: UserType;
+  userType: USER_TYPE;
 }

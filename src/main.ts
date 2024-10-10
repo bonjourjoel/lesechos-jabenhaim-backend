@@ -1,8 +1,9 @@
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
 import { AppModule } from './app.module';
 import { NestFactory } from '@nestjs/core';
+import { OpenApiGeneratorService } from './apidoc/services/openapi-generator.service';
+import { SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { buildSwaggerDocument } from './swagger-setup';
 
 async function bootstrap() {
   // create nest.js app
@@ -19,27 +20,12 @@ async function bootstrap() {
 
   // Configure Swagger
   const SWAGGER_ENDPOINT_NAME = 'swagger';
-  const config = new DocumentBuilder()
-    .setTitle('Les Echos - test dev back end - Joel Abenhaim')
-    .setDescription("Documentation et test de l'API RESTful")
-    .setVersion('1.0')
-    // add sections
-    .addTag('root')
-    .addTag('auth')
-    .addTag('users')
-    // add a bearer token button login/logout, the jwt token will be automatically added to each request
-    .addBearerAuth({
-      type: 'http',
-      scheme: 'bearer',
-      bearerFormat: 'JWT',
-      in: 'header',
-      name: 'Authorization',
-      description: 'Log in , then enter your JWT Bearer token (accessToken)',
-    })
-    .addSecurityRequirements('bearer')
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = buildSwaggerDocument(app);
   SwaggerModule.setup(SWAGGER_ENDPOINT_NAME, app, document);
+
+  // Initialize the services needing the app instance
+  const openApiGeneratorService = app.get(OpenApiGeneratorService);
+  openApiGeneratorService.initialize(app);
 
   // start app
   await app.listen(process.env.HTTP_PORT);

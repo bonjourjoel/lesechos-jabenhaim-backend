@@ -8,6 +8,7 @@ import { MultipartJsonMiddleware } from './common/middlewares/multipart-json.mid
 import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/services/prisma.service';
 import { UsersModule } from './users/users.module';
+import { ApidocModule } from './apidoc/apidoc.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UsersModule } from './users/users.module';
     PrismaModule,
     UsersModule,
     AuthModule,
+    ApidocModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

@@ -2,7 +2,7 @@ import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { UserType } from 'src/common/enums/user-type.enum';
+import { USER_TYPE } from 'src/common/enums/user-type.enum';
 
 export class GetUsersQueryDto {
   @ApiProperty({ required: false, description: 'Filter by username' })
@@ -28,11 +28,11 @@ export class GetUsersQueryDto {
   @ApiProperty({
     required: false,
     description: 'Filter by user type',
-    enum: UserType,
+    enum: USER_TYPE,
   })
   @IsOptional()
-  @IsEnum(UserType)
-  userType?: UserType;
+  @IsEnum(USER_TYPE)
+  userType?: USER_TYPE;
 
   @ApiProperty({ required: false, description: 'Field to sort by' })
   @IsOptional()
