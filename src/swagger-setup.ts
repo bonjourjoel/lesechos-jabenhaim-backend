@@ -1,12 +1,13 @@
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
+import { API_VERSION } from './const';
 import { INestApplication } from '@nestjs/common';
 
 export function buildSwaggerDocument(app: INestApplication) {
   const config = new DocumentBuilder()
     .setTitle('Les Echos - test dev back end - Joel Abenhaim')
     .setDescription('RESTful API Documentation and Testing')
-    .setVersion('1.0')
+    .setVersion(API_VERSION)
     // add sections
     .addTag('apidoc')
     .addTag('auth')
@@ -22,8 +23,6 @@ export function buildSwaggerDocument(app: INestApplication) {
     })
     .addSecurityRequirements('bearer')
     .build();
-  const document = SwaggerModule.createDocument(app, config, {
-    deepScanRoutes: true, // Scans routes with global prefix
-  });
+  const document = SwaggerModule.createDocument(app, config);
   return document;
 }

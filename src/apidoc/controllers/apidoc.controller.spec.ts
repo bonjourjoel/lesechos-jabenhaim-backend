@@ -2,7 +2,6 @@ import * as request from 'supertest';
 
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { APP_GLOBAL_ROUTES_PREFIX } from 'src/main';
 import { ApidocController } from './apidoc.controller';
 import { HTTP } from 'src/common/enums/http-status-code.enum';
 import { HtmlGeneratorService } from 'src/apidoc/services/html-generator.service';
@@ -27,7 +26,6 @@ describe('ApidocController', () => {
 
     // Initialize the app and the service
     app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix(APP_GLOBAL_ROUTES_PREFIX);
     await app.init();
 
     // Retrieve the services from the app context
@@ -47,7 +45,7 @@ describe('ApidocController', () => {
   // Test for PDF format
   it('/apidoc/generate (GET) should generate a PDF', async () => {
     const response = await request(app.getHttpServer())
-      .get(`/${APP_GLOBAL_ROUTES_PREFIX}/apidoc/generate?format=PDF`)
+      .get('/apidoc/generate?format=PDF')
       .expect(HTTP._200_OK);
 
     // Check that the content type is 'application/pdf'
@@ -60,7 +58,7 @@ describe('ApidocController', () => {
   // Test for JSON format
   it('/apidoc/generate (GET) should generate OpenAPI JSON', async () => {
     const response = await request(app.getHttpServer())
-      .get(`/${APP_GLOBAL_ROUTES_PREFIX}/apidoc/generate?format=JSON`)
+      .get('/apidoc/generate?format=JSON')
       .expect(HTTP._200_OK);
 
     // Check that the content type is 'application/json'
@@ -75,7 +73,7 @@ describe('ApidocController', () => {
   // Test for HTML format
   it('/apidoc/generate (GET) should generate OpenAPI HTML', async () => {
     const response = await request(app.getHttpServer())
-      .get(`/${APP_GLOBAL_ROUTES_PREFIX}/apidoc/generate?format=HTML`)
+      .get('/apidoc/generate?format=HTML')
       .expect(HTTP._200_OK);
 
     // Check that the content type is 'text/html'
@@ -89,7 +87,7 @@ describe('ApidocController', () => {
   // Test for invalid format
   it('/apidoc/generate (GET) should return 400 for an invalid format', async () => {
     await request(app.getHttpServer())
-      .get(`/${APP_GLOBAL_ROUTES_PREFIX}/apidoc/generate?format=invalid-format`)
+      .get('/apidoc/generate?format=invalid-format')
       .expect(HTTP._400_BAD_REQUEST); // Expecting a 400 Bad Request
   });
 });

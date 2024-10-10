@@ -8,7 +8,6 @@ import {
 } from 'prisma/fixtures/seed-test';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { APP_GLOBAL_ROUTES_PREFIX } from 'src/main';
 import { AuthController } from './auth.controller';
 import { AuthService } from '../services/auth.service';
 import { HTTP } from 'src/common/enums/http-status-code.enum';
@@ -39,7 +38,6 @@ describe('AuthController', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix(APP_GLOBAL_ROUTES_PREFIX);
     usersService = moduleFixture.get<UsersService>(UsersService);
     await app.init();
   });
@@ -54,7 +52,7 @@ describe('AuthController', () => {
 
   it('should successfully login', async () => {
     const loginResponse = await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/login`)
+      .post('/auth/login')
       .send({ username: TEST_USER_1, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
     const accessToken: string = loginResponse.body.accessToken;
@@ -71,7 +69,7 @@ describe('AuthController', () => {
     };
 
     await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/login`)
+      .post('/auth/login')
       .send(loginDto)
       .expect(HTTP._401_UNAUTHORIZED);
   });
@@ -83,21 +81,21 @@ describe('AuthController', () => {
     };
 
     await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/login`)
+      .post('/auth/login')
       .send(loginDto)
       .expect(HTTP._401_UNAUTHORIZED);
   });
 
   it('should refresh the access token using refresh token', async () => {
     const loginResponse = await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/login`)
+      .post('/auth/login')
       .send({ username: TEST_USER_1, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
 
     const refreshToken = loginResponse.body.refreshToken;
 
     const refreshResponse = await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/refresh`)
+      .post('/auth/refresh')
       .send({ refreshToken })
       .expect(HTTP._200_OK);
 
@@ -107,14 +105,14 @@ describe('AuthController', () => {
 
   it('should successfully logout and remove the refresh token', async () => {
     const loginResponse = await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/login`)
+      .post('/auth/login')
       .send({ username: TEST_USER_1, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
 
     const accessToken = loginResponse.body.accessToken;
 
     await request(app.getHttpServer())
-      .delete(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/logout`)
+      .delete('/auth/logout')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(HTTP._200_OK);
 
@@ -126,73 +124,73 @@ describe('AuthController', () => {
 
   it('should refresh the access token twice and allow logout with the latest accessToken', async () => {
     const loginResponse = await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/login`)
+      .post('/auth/login')
       .send({ username: TEST_USER_1, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
 
     let refreshToken = loginResponse.body.refreshToken;
 
     const firstRefreshResponse = await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/refresh`)
+      .post('/auth/refresh')
       .send({ refreshToken })
       .expect(HTTP._200_OK);
 
     refreshToken = firstRefreshResponse.body.refreshToken;
 
     const secondRefreshResponse = await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/refresh`)
+      .post('/auth/refresh')
       .send({ refreshToken })
       .expect(HTTP._200_OK);
 
     const latestAccessToken = secondRefreshResponse.body.accessToken;
 
     await request(app.getHttpServer())
-      .delete(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/logout`)
+      .delete('/auth/logout')
       .set('Authorization', `Bearer ${latestAccessToken}`)
       .expect(HTTP._200_OK);
   });
 
   it('should not allow refresh with the same refresh token after logout', async () => {
     const loginResponse = await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/login`)
+      .post('/auth/login')
       .send({ username: TEST_USER_1, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
 
     const refreshToken = loginResponse.body.refreshToken;
 
     await request(app.getHttpServer())
-      .delete(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/logout`)
+      .delete('/auth/logout')
       .set('Authorization', `Bearer ${loginResponse.body.accessToken}`)
       .expect(HTTP._200_OK);
 
     await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/refresh`)
+      .post('/auth/refresh')
       .send({ refreshToken })
       .expect(HTTP._401_UNAUTHORIZED);
   });
 
   it('should not allow refresh with the old refresh token after a successful refresh', async () => {
     const loginResponse = await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/login`)
+      .post('/auth/login')
       .send({ username: TEST_USER_1, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
 
     const refreshToken = loginResponse.body.refreshToken;
 
     const refreshResponse = await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/refresh`)
+      .post('/auth/refresh')
       .send({ refreshToken })
       .expect(HTTP._200_OK);
 
     const newRefreshToken = refreshResponse.body.refreshToken;
 
     await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/refresh`)
+      .post('/auth/refresh')
       .send({ refreshToken })
       .expect(HTTP._401_UNAUTHORIZED);
 
     await request(app.getHttpServer())
-      .post(`/${APP_GLOBAL_ROUTES_PREFIX}/auth/refresh`)
+      .post('/auth/refresh')
       .send({ refreshToken: newRefreshToken })
       .expect(HTTP._200_OK);
   });

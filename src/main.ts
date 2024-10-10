@@ -1,5 +1,5 @@
+import { API_VERSION } from './const';
 import { AppModule } from './app.module';
-import { NODE_ENV } from './common/enums/node-env.enum';
 import { NestFactory } from '@nestjs/core';
 import { OpenApiGeneratorService } from './apidoc/services/openapi-generator.service';
 import { SwaggerModule } from '@nestjs/swagger';
@@ -7,14 +7,12 @@ import { ValidationPipe } from '@nestjs/common';
 import { buildSwaggerDocument } from './swagger-setup';
 import helmet from 'helmet';
 
-export const APP_GLOBAL_ROUTES_PREFIX = 'v1';
-
 async function bootstrap() {
   // Create nest.js app
   const app = await NestFactory.create(AppModule);
 
   // Set a global prefix for all API routes
-  app.setGlobalPrefix(APP_GLOBAL_ROUTES_PREFIX);
+  app.setGlobalPrefix(API_VERSION);
 
   // Configure default validation pipes
   app.useGlobalPipes(
@@ -47,6 +45,4 @@ async function bootstrap() {
   );
 }
 
-if (process.env.NODE_ENV !== NODE_ENV.TEST) {
-  void bootstrap();
-}
+void bootstrap();
