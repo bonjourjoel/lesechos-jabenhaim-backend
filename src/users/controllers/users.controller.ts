@@ -4,7 +4,6 @@ import {
   Body,
   Get,
   Param,
-  Put,
   Delete,
   UsePipes,
   ValidationPipe,
@@ -12,6 +11,7 @@ import {
   UseGuards,
   Req,
   ForbiddenException,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -38,7 +38,13 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  )
   @UseGuards(new JwtAuthGuard(), new RolesGuard(USER_TYPE.ADMIN))
   @ApiOperation({
     summary:
@@ -53,7 +59,13 @@ export class UsersController {
   }
 
   @Get(':id')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  )
   @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
   @ApiOperation({
     summary:
@@ -71,7 +83,13 @@ export class UsersController {
   }
 
   @Post('')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  )
   @ApiConsumes('multipart/form-data', 'application/json')
   @ApiOperation({
     summary:
@@ -92,13 +110,19 @@ export class UsersController {
     return user;
   }
 
-  @Put(':id')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @Patch(':id')
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  )
   @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
   @ApiConsumes('multipart/form-data', 'application/json')
   @ApiOperation({
     summary:
-      'Update a user by ID [Authorization: authenticated & (ADMIN | self_id)]',
+      "Update some user's fields by ID [Authorization: authenticated & (ADMIN | self_id)]",
   })
   @ApiBody({ type: UpdateUserDto, description: 'User fields to update' })
   @ApiResponse({
@@ -128,7 +152,13 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  )
   @UseGuards(new JwtAuthGuard(), new OwnUserGuard())
   @ApiOperation({
     summary:

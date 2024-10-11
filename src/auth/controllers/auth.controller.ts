@@ -7,6 +7,8 @@ import {
   UseGuards,
   HttpCode,
   InternalServerErrorException,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../dtos/login.dto';
@@ -33,6 +35,13 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HTTP._200_OK)
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  )
   @ApiConsumes('multipart/form-data', 'application/json')
   @ApiBody({ type: LoginDto })
   @ApiOperation({ summary: 'Login a user [Authorization: none]' })
@@ -46,6 +55,13 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HTTP._200_OK)
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  )
   @ApiConsumes('multipart/form-data', 'application/json')
   @ApiOperation({
     summary: 'Refresh access token using refresh token [Authorization: none]',
@@ -78,6 +94,13 @@ export class AuthController {
   }
 
   @Delete('logout')
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  )
   @UseGuards(new JwtAuthGuard())
   @ApiOperation({ summary: 'Logout a user [Authorization: authenticated]' })
   @ApiResponse({

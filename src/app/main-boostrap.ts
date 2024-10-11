@@ -5,7 +5,6 @@ import { Logger } from 'winston';
 import { NestFactory } from '@nestjs/core';
 import { OpenApiGeneratorService } from '../apidoc/services/openapi-generator.service';
 import { SwaggerModule } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { buildSwaggerDocument } from './utils/swagger-setup.util';
 import helmet from 'helmet';
@@ -16,15 +15,6 @@ export async function bootstrap() {
 
   // Set a global prefix for all API routes
   app.setGlobalPrefix(`api/${API_VERSION}`);
-
-  // Configure default validation pipes
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true, // Ignores properties not specified in the DTO
-      forbidNonWhitelisted: true, // Returns an error if unspecified properties are present
-    }),
-  );
 
   // Initialize the Logger middleware error filter globally
   app.useGlobalFilters(app.get(AllExceptionsLoggerFilter));

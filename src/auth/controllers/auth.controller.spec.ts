@@ -50,6 +50,32 @@ describe('AuthController', () => {
     await seedTestDatabase();
   });
 
+  // Test: Should return 400 if only username is provided (missing required fields like password)
+  it('should return 400 if only username is provided', async () => {
+    const incompleteData = {
+      username: TEST_USER_1,
+    };
+
+    await request(app.getHttpServer())
+      .post('/auth/login')
+      .send(incompleteData)
+      .expect(HTTP._400_BAD_REQUEST); // Expecting validation to fail with 400
+  });
+
+  // Test: Should return 400 if username, password, and an unknown field are provided
+  it('should return 400 if username, password, and an unknown field are provided', async () => {
+    const invalidData = {
+      username: TEST_USER_1,
+      password: TEST_PASSWORD,
+      unknownField: 'someValue', // This field does not exist in the DTO
+    };
+
+    await request(app.getHttpServer())
+      .post('/auth/login')
+      .send(invalidData)
+      .expect(HTTP._400_BAD_REQUEST); // Expecting validation to fail with 400
+  });
+
   it('should successfully login', async () => {
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')

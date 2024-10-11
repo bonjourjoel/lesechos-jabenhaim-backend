@@ -4,6 +4,8 @@ import {
   Get,
   Query,
   Res,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { Response } from 'express';
 import {
@@ -29,6 +31,13 @@ export class ApidocController {
   ) {}
 
   @Get('generate')
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  )
   @ApiOperation({
     summary:
       'Generate the RESTful API documentation in the specified format [Authorization: none]',

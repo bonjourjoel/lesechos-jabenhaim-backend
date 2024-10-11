@@ -19,7 +19,6 @@ import { PrismaService } from 'src/prisma/services/prisma.service';
 import { USER_TYPE } from 'src/common/enums/user-type.enum';
 import { UsersController } from './users.controller';
 import { UsersService } from '../services/users.service';
-import { hashPassword } from 'src/common/utils/password-hasher.utils';
 
 describe('UsersController', () => {
   let app: INestApplication;
@@ -418,19 +417,33 @@ describe('UsersController', () => {
       expect(getResponse.body).not.toHaveProperty('passwordHashed');
       expect(getResponse.body).not.toHaveProperty('refreshToken');
     });
+
+    it('should return 400 when attempting to create a user with a non-existent field', async () => {
+      const invalidCreateData = {
+        username: 'newuser',
+        password: 'password123',
+        nonExistentField: 'This field does not exist', // Invalid field
+      };
+
+      // Make the POST request with invalid field
+      await request(app.getHttpServer())
+        .post('/users')
+        .send(invalidCreateData)
+        .expect(HTTP._400_BAD_REQUEST); // Expect 400 error due to non-existent field
+    });
   });
 
-  describe('/users/:id (PUT) - Update user by ID', () => {
+  describe('/users/:id (PATCH) - Update user by ID', () => {
     it('should return 401 for unauthenticated users', async () => {
       await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .send({ name: 'Updated' })
         .expect(HTTP._401_UNAUTHORIZED);
     });
 
     it('should return 403 for USER role trying to update another user', async () => {
       await request(app.getHttpServer())
-        .put('/users/2')
+        .patch('/users/2')
         .set('Authorization', `Bearer ${userAccessToken}`)
         .send({ name: 'Updated' })
         .expect(HTTP._403_FORBIDDEN);
@@ -443,7 +456,7 @@ describe('UsersController', () => {
       };
 
       await request(app.getHttpServer())
-        .put('/users/999') // Attempt to update a non-existent user with ID 999
+        .patch('/users/999') // Attempt to update a non-existent user with ID 999
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updatedData)
         .expect(HTTP._404_NOT_FOUND); // Expecting a 404 Not Found as the user doesn't exist
@@ -457,7 +470,7 @@ describe('UsersController', () => {
       };
 
       await request(app.getHttpServer())
-        .put('/users/1') // Attempt to update user with ID 1
+        .patch('/users/1') // Attempt to update user with ID 1
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updatedData)
         .expect(HTTP._500_INTERNAL_SERVER_ERROR); // Expecting a 500 Internal Server Error due to unique constraint violation
@@ -465,7 +478,7 @@ describe('UsersController', () => {
 
     it('should allow USER to update their own data', async () => {
       const response = await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${userAccessToken}`)
         .send({ name: 'Updated Name' })
         .expect(HTTP._200_OK);
@@ -477,7 +490,7 @@ describe('UsersController', () => {
 
     it('should allow ADMIN to update any user data', async () => {
       const response = await request(app.getHttpServer())
-        .put('/users/2')
+        .patch('/users/2')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send({ name: 'Admin Updated' })
         .expect(HTTP._200_OK);
@@ -489,7 +502,7 @@ describe('UsersController', () => {
 
     it('should return 403 if USER tries to update userType to ADMIN', async () => {
       await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${userAccessToken}`)
         .send({ userType: USER_TYPE.ADMIN }) // USER trying to change userType to 'ADMIN'
         .expect(HTTP._403_FORBIDDEN);
@@ -498,7 +511,7 @@ describe('UsersController', () => {
     it('should allow USER to update userType to USER or undefined', async () => {
       // Test userType set to 'USER'
       let response = await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${userAccessToken}`)
         .send({ userType: USER_TYPE.USER })
         .expect(HTTP._200_OK);
@@ -509,7 +522,7 @@ describe('UsersController', () => {
 
       // Test userType set to undefined
       response = await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${userAccessToken}`)
         .send({ userType: undefined })
         .expect(HTTP._200_OK);
@@ -521,7 +534,7 @@ describe('UsersController', () => {
 
     it('should allow ADMIN to update userType to ADMIN', async () => {
       const response = await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send({ userType: USER_TYPE.ADMIN })
         .expect(HTTP._200_OK);
@@ -534,7 +547,6 @@ describe('UsersController', () => {
     it('should allow ADMIN to update all fields of a user at once', async () => {
       const updatedData = {
         username: 'updatedUser',
-        passwordHashed: await hashPassword('newpassword'),
         name: 'Updated Full Name',
         address: '789 New Address',
         comment: 'Updated comment by admin',
@@ -542,7 +554,7 @@ describe('UsersController', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updatedData)
         .expect(HTTP._200_OK);
@@ -565,7 +577,7 @@ describe('UsersController', () => {
 
       // Perform the PUT request to update the user
       await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updatedData)
         .expect(HTTP._200_OK);
@@ -594,7 +606,7 @@ describe('UsersController', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updatedData)
         .expect(HTTP._200_OK);
@@ -610,7 +622,7 @@ describe('UsersController', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updatedData)
         .expect(HTTP._200_OK);
@@ -626,18 +638,10 @@ describe('UsersController', () => {
       };
 
       await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updatedData)
-        .expect(HTTP._200_OK);
-
-      // Retrieve the user after the update to verify sensitive fields were not modified
-      const updatedUser = await usersService.findUserById(1);
-
-      expect(updatedUser.passwordHashed).not.toBe(updatedData.passwordHashed); // Password should remain unchanged
-      expect(updatedUser.refreshTokenHashed).not.toBe(
-        updatedData.refreshTokenHashed,
-      ); // Refresh token should remain unchanged
+        .expect(HTTP._400_BAD_REQUEST);
     });
 
     // Test: Validate that fields follow required validation rules
@@ -648,7 +652,7 @@ describe('UsersController', () => {
       };
 
       await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(invalidData)
         .expect(HTTP._400_BAD_REQUEST); // Should return validation error
@@ -662,7 +666,7 @@ describe('UsersController', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updatedData)
         .expect(HTTP._200_OK);
@@ -672,40 +676,33 @@ describe('UsersController', () => {
       expect(response.body).toHaveProperty('name', originalUser.name); // Name remains unchanged
     });
 
-    it('should not allow updating non-modifiable fields such as id, passwordHashed, and refreshTokenHashed', async () => {
+    it('should not allow updating non-modifiable fields such as id', async () => {
       // Load the original user from the database
-      const originalUser = await usersService.findUserById(1);
-
       const updatedData = {
         id: 999, // Attempting to modify the ID, which should not be allowed
-        passwordHashed: 'newhashedpassword', // Attempting to modify passwordHashed, which should not be allowed
-        refreshTokenHashed: 'abcd', // Attempting to modify refreshTokenHashed, which should not be allowed
         address: 'Updated Address', // Modifiable field
       };
 
       // Perform the update request
       await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updatedData)
-        .expect(HTTP._200_OK); // Update succeeds (only for modifiable fields)
+        .expect(HTTP._400_BAD_REQUEST); // Validation ERROR
+    });
 
-      // Reload the user from the database after the update
-      const updatedUser = await usersService.findUserById(1);
+    it('should not allow updating non-modifiable fields such as passwordHashed, and refreshTokenHashed', async () => {
+      const updatedData = {
+        passwordHashed: 'newhashedpassword', // Attempting to modify passwordHashed, which should not be allowed
+        refreshTokenHashed: 'abcd', // Attempting to modify refreshTokenHashed, which should not be allowed
+      };
 
-      // Ensure the ID was not modified
-      expect(updatedUser.id).toBe(originalUser.id); // ID should remain unchanged
-
-      // Ensure the passwordHashed was not modified
-      expect(updatedUser.passwordHashed).toBe(originalUser.passwordHashed); // passwordHashed should remain unchanged
-
-      // Ensure the refreshTokenHashed was not modified
-      expect(updatedUser.refreshTokenHashed).toBe(
-        originalUser.refreshTokenHashed,
-      ); // refreshTokenHashed should remain unchanged
-
-      // Ensure the address was updated
-      expect(updatedUser.address).toBe(updatedData.address); // Address should be updated
+      // Perform the update request
+      await request(app.getHttpServer())
+        .patch('/users/1')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updatedData)
+        .expect(HTTP._400_BAD_REQUEST); // Validation ERROR
     });
 
     // Test with invalid token
@@ -717,7 +714,7 @@ describe('UsersController', () => {
       };
 
       await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${invalidToken}`)
         .send(updatedData)
         .expect(HTTP._401_UNAUTHORIZED); // Expect 401 for invalid token
@@ -745,10 +742,24 @@ describe('UsersController', () => {
       };
 
       await request(app.getHttpServer())
-        .put('/users/1')
+        .patch('/users/1')
         .set('Authorization', `Bearer ${newAccessToken}`)
         .send(updatedData)
         .expect(HTTP._200_OK); // Expect 200 after successful refresh
+    });
+
+    it('should return 400 when attempting to update a non-existent field', async () => {
+      const invalidUpdateData = {
+        nonExistentField: 'This field does not exist', // Attempt to update an invalid field
+        address: 'New Address', // Valid field for comparison
+      };
+
+      // Make the PUT request with invalid field
+      await request(app.getHttpServer())
+        .patch('/users/1')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(invalidUpdateData)
+        .expect(HTTP._400_BAD_REQUEST); // Expect 400 error due to non-existent field
     });
   });
 

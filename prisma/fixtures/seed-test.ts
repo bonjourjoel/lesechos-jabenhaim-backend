@@ -11,8 +11,10 @@ const prisma = new PrismaClient();
 export async function seedTestDatabase() {
   await prisma.$transaction(async (prisma) => {
     // delete users data and reset auto-increment
-    await prisma.user.deleteMany();
-    await prisma.$executeRaw`DELETE FROM sqlite_sequence WHERE name='User'`;
+    await Promise.all([
+      prisma.user.deleteMany(),
+      prisma.$executeRaw`DELETE FROM sqlite_sequence WHERE name='User'`,
+    ]);
 
     // create users
     await prisma.user.createMany({

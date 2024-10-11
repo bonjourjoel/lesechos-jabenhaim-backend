@@ -42,6 +42,20 @@ describe('ApidocController', () => {
     await app.close();
   });
 
+  // Test: Should return 400 if the format is missing
+  it('/apidoc/generate (GET) should return 400 if format is missing', async () => {
+    await request(app.getHttpServer())
+      .get('/apidoc/generate') // No format specified
+      .expect(HTTP._400_BAD_REQUEST); // Expecting a 400 Bad Request
+  });
+
+  // Test: Should return 400 if format is 'blabla'
+  it('/apidoc/generate (GET) should return 400 for an invalid format', async () => {
+    await request(app.getHttpServer())
+      .get('/apidoc/generate?format=invalidformat') // Invalid format
+      .expect(HTTP._400_BAD_REQUEST); // Expecting a 400 Bad Request
+  });
+
   // Test for PDF format
   it('/apidoc/generate (GET) should generate a PDF', async () => {
     const response = await request(app.getHttpServer())
@@ -82,12 +96,5 @@ describe('ApidocController', () => {
     // Check that the response body contains valid HTML
     expect(response.text).toContain('<html>'); // Basic check for HTML structure
     expect(response.text).toContain('API Documentation'); // Check for title or any known text in the HTML
-  });
-
-  // Test for invalid format
-  it('/apidoc/generate (GET) should return 400 for an invalid format', async () => {
-    await request(app.getHttpServer())
-      .get('/apidoc/generate?format=invalid-format')
-      .expect(HTTP._400_BAD_REQUEST); // Expecting a 400 Bad Request
   });
 });
