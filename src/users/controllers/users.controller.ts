@@ -28,14 +28,14 @@ import { CreateUserDto } from '../dtos/create-user.dto';
 import { GetUsersQueryDto } from '../dtos/get-users-query.dto';
 import { UserDto } from '../dtos/user.dto';
 import { OwnUserGuard } from '../guards/own-user.guard';
-import { UsersService } from '../services/users.service';
+import { UsersDbService } from '../services/users.db.service';
 import { AuthenticatedRequest } from 'src/auth/types/authenticated-request.interface';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersDbService: UsersDbService) {}
 
   @Get()
   @UsePipes(
@@ -54,7 +54,7 @@ export class UsersController {
   })
   @ApiResponse({ status: 200, description: 'List of users', type: [UserDto] })
   async getAllUsers(@Query() query: GetUsersQueryDto): Promise<UserDto[]> {
-    const users = await this.usersService.findAllUsers(query);
+    const users = await this.usersDbService.findAllUsers(query);
     return users;
   }
 
@@ -78,7 +78,7 @@ export class UsersController {
   })
   @ApiResponse({ status: HTTP._404_NOT_FOUND, description: 'User not found.' })
   async getUser(@Param('id') id: number): Promise<UserDto> {
-    const user = await this.usersService.findUserById(id);
+    const user = await this.usersDbService.findUserById(id);
     return user;
   }
 
@@ -106,7 +106,7 @@ export class UsersController {
     description: 'Validation failed.',
   })
   async register(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
-    const user = await this.usersService.createUser(createUserDto);
+    const user = await this.usersDbService.createUser(createUserDto);
     return user;
   }
 
@@ -147,7 +147,7 @@ export class UsersController {
     }
 
     // update user
-    const user = await this.usersService.updateUser(id, body);
+    const user = await this.usersDbService.updateUser(id, body);
     return user;
   }
 
@@ -171,7 +171,7 @@ export class UsersController {
   })
   @ApiResponse({ status: HTTP._404_NOT_FOUND, description: 'User not found.' })
   async deleteUser(@Param('id') id: number): Promise<UserDto> {
-    const user = await this.usersService.deleteUser(id);
+    const user = await this.usersDbService.deleteUser(id);
     return user;
   }
 }

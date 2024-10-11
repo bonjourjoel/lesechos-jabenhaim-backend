@@ -1,9 +1,11 @@
 import { AuthController } from './controllers/auth.controller';
+import { AuthDbService } from './services/auth.db.service';
 import { AuthService } from './services/auth.service';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { Module } from '@nestjs/common';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { UsersModule } from '../users/users.module';
 
 @Module({
@@ -20,9 +22,10 @@ import { UsersModule } from '../users/users.module';
         secret: process.env.JWT_SECRET,
       }),
     }),
+    PrismaModule,
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthDbService, AuthService, JwtStrategy],
 })
 export class AuthModule {}

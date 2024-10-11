@@ -4,22 +4,24 @@ import {
 } from '../consts/auth.const';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 
+import { AuthDbService } from './auth.db.service';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from '../dtos/login.dto';
 import { User } from '@prisma/client';
-import { UsersService } from 'src/users/services/users.service';
+import { UsersDbService } from 'src/users/services/users.db.service';
 import { compareHashedPasword } from 'src/common/utils/password-hasher.utils';
 import { compareHashedToken } from 'src/common/utils/token-hasher.utils';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly usersDbService: UsersDbService,
+    private readonly authDbService: AuthDbService,
   ) {}
 
   async login(loginDto: LoginDto) {
-    const user: User = await this.usersService.findUserByUsername(
+    const user: User = await this.usersDbService.findUserByUsername(
       loginDto.username,
       { removeSensitiveInformation: false },
     );
@@ -51,7 +53,7 @@ export class AuthService {
     });
 
     // Store the Refresh Token in the database (hashed)
-    await this.usersService.updateRefreshToken(user.id, refreshToken);
+    await this.authDbService.updateRefreshToken(user.id, refreshToken);
 
     return {
       accessToken,
@@ -65,7 +67,7 @@ export class AuthService {
   }
 
   async refreshToken(userId: number, refreshToken: string) {
-    const user = await this.usersService.findUserById(userId, {
+    const user = await this.usersDbService.findUserById(userId, {
       removeSensitiveInformation: false,
     });
 
@@ -96,7 +98,7 @@ export class AuthService {
       expiresIn: AUTH_REFRESH_TOKEN_EXPIRATION,
     });
 
-    await this.usersService.updateRefreshToken(user.id, newRefreshToken);
+    await this.authDbService.updateRefreshToken(user.id, newRefreshToken);
 
     return {
       accessToken,
@@ -110,7 +112,7 @@ export class AuthService {
   }
 
   async logout(userId: number) {
-    await this.usersService.removeRefreshToken(userId);
+    await this.authDbService.removeRefreshToken(userId);
 
     return { message: `Logout successful for userId=${userId}` };
   }

@@ -2,8 +2,8 @@ import { PrismaClient } from '@prisma/client';
 import { USER_TYPE } from 'src/common/enums/user-type.enum';
 import { hashPassword } from 'src/common/utils/password-hasher.utils';
 
-export const TEST_USER_1 = 'testuser1';
-export const TEST_USER_ADMIN = 'adminuser';
+export const TEST_USERNAME_1 = 'testuser1';
+export const TEST_USERNAME_ADMIN = 'adminuser';
 export const TEST_PASSWORD = 'password';
 
 const prisma = new PrismaClient();
@@ -20,7 +20,7 @@ export async function seedTestDatabase() {
     await prisma.user.createMany({
       data: [
         {
-          username: TEST_USER_1,
+          username: TEST_USERNAME_1,
           passwordHashed: await hashPassword(TEST_PASSWORD),
           name: 'Test User One',
           address: '123 Main St',
@@ -28,7 +28,7 @@ export async function seedTestDatabase() {
           userType: USER_TYPE.USER,
         },
         {
-          username: TEST_USER_ADMIN,
+          username: TEST_USERNAME_ADMIN,
           passwordHashed: await hashPassword(TEST_PASSWORD),
           name: 'Admin User',
           address: '456 Admin Rd',

@@ -4,7 +4,6 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/services/prisma.service';
 import { User } from '@prisma/client';
 import { hashPassword } from 'src/common/utils/password-hasher.utils';
-import { hashToken } from 'src/common/utils/token-hasher.utils';
 import { prismaErrorMiddleware } from 'src/common/utils/prisma-error-middleware.utils';
 
 type UserWithoutSensitiveInfo = Omit<
@@ -13,7 +12,7 @@ type UserWithoutSensitiveInfo = Omit<
 >;
 
 @Injectable()
-export class UsersService {
+export class UsersDbService {
   constructor(private prisma: PrismaService) {}
 
   // remove sensitive information both in types User and IUser
@@ -169,29 +168,6 @@ export class UsersService {
       });
 
       return users.map((user) => this.removeUserSensitiveInformation(user));
-    } catch (error) {
-      throw prismaErrorMiddleware(error);
-    }
-  }
-
-  async updateRefreshToken(userId: number, refreshToken: string) {
-    const refreshTokenHashed: string = await hashToken(refreshToken);
-    try {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { refreshTokenHashed },
-      });
-    } catch (error) {
-      throw prismaErrorMiddleware(error);
-    }
-  }
-
-  async removeRefreshToken(userId: number) {
-    try {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { refreshTokenHashed: null }, // Invalidate the Refresh Token by setting it to null
-      });
     } catch (error) {
       throw prismaErrorMiddleware(error);
     }

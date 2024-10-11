@@ -3,13 +3,14 @@ import * as request from 'supertest';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import {
   TEST_PASSWORD,
-  TEST_USER_1,
-  TEST_USER_ADMIN,
+  TEST_USERNAME_1,
+  TEST_USERNAME_ADMIN,
   seedTestDatabase,
 } from 'prisma/fixtures/seed-test';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { AuthController } from 'src/auth/controllers/auth.controller';
+import { AuthDbService } from 'src/auth/services/auth.db.service';
 import { AuthService } from 'src/auth/services/auth.service';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { HTTP } from 'src/common/enums/http-status-code.enum';
@@ -18,13 +19,18 @@ import { JwtStrategy } from 'src/auth/strategies/jwt.strategy';
 import { PrismaService } from 'src/prisma/services/prisma.service';
 import { USER_TYPE } from 'src/common/enums/user-type.enum';
 import { UsersController } from './users.controller';
-import { UsersService } from '../services/users.service';
+import { UsersDbService } from '../services/users.db.service';
 
+/**
+ * =======================================================
+ * Test suite: UsersController
+ * =======================================================
+ */
 describe('UsersController', () => {
   let app: INestApplication;
   let userAccessToken: string;
   let adminAccessToken: string;
-  let usersService: UsersService;
+  let usersDbService: UsersDbService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -35,16 +41,17 @@ describe('UsersController', () => {
       ],
       providers: [
         PrismaService,
-        UsersService,
+        UsersDbService,
         JwtService,
         JwtStrategy,
+        AuthDbService,
         AuthService,
       ],
       controllers: [AuthController, UsersController],
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    usersService = app.get(UsersService);
+    usersDbService = app.get(UsersDbService);
     await app.init();
   });
 
@@ -58,25 +65,32 @@ describe('UsersController', () => {
     // Connect as USER
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ username: TEST_USER_1, password: TEST_PASSWORD })
+      .send({ username: TEST_USERNAME_1, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
     userAccessToken = loginResponse.body.accessToken;
 
     // Connect as ADMIN
     const adminResponse = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ username: TEST_USER_ADMIN, password: TEST_PASSWORD })
+      .send({ username: TEST_USERNAME_ADMIN, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
     adminAccessToken = adminResponse.body.accessToken;
   });
 
+  /**
+   * =======================================================
+   * Test suite: GET
+   * =======================================================
+   */
   describe('/users (GET) - List users', () => {
+    // Test: Should return 401 for unauthenticated users
     it('should return 401 for unauthenticated users', async () => {
       await request(app.getHttpServer())
         .get('/users')
         .expect(HTTP._401_UNAUTHORIZED);
     });
 
+    // Test: Should return 403 for USER role trying to access user list
     it('should return 403 for USER role trying to access user list', async () => {
       await request(app.getHttpServer())
         .get('/users')
@@ -84,12 +98,13 @@ describe('UsersController', () => {
         .expect(HTTP._403_FORBIDDEN);
     });
 
+    // Test: Should allow ADMIN to list users filtered by username, sorted by id in descending order, and paginated
     it('should allow ADMIN to list users filtered by username, sorted by id in descending order, and paginated', async () => {
       const response = await request(app.getHttpServer())
         .get('/users')
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({
-          username: TEST_USER_1, // Filter by username 'testuser1'
+          username: TEST_USERNAME_1, // Filter by username 'testuser1'
           sortBy: 'id', // Sort by ID
           sortDir: 'desc', // Descending order
           page: 1, // Page 1
@@ -99,11 +114,12 @@ describe('UsersController', () => {
 
       // Verify the filter and pagination
       expect(response.body).toHaveLength(1); // Expect only one user due to limit=1
-      expect(response.body[0].username).toEqual(TEST_USER_1); // Should return 'testuser1'
+      expect(response.body[0].username).toEqual(TEST_USERNAME_1); // Should return 'testuser1'
       expect(response.body[0]).not.toHaveProperty('passwordHashed');
       expect(response.body[0]).not.toHaveProperty('refreshToken');
     });
 
+    // Test: Should allow ADMIN to paginate users and return correct users on each page
     it('should allow ADMIN to paginate users and return correct users on each page', async () => {
       const page1Response = await request(app.getHttpServer())
         .get('/users')
@@ -116,7 +132,7 @@ describe('UsersController', () => {
 
       expect(page1Response.body).toHaveLength(1);
       const firstUserId = page1Response.body[0].id;
-      expect(page1Response.body[0].username).toEqual(TEST_USER_1); // First user should be 'testuser1'
+      expect(page1Response.body[0].username).toEqual(TEST_USERNAME_1); // First user should be 'testuser1'
 
       const page2Response = await request(app.getHttpServer())
         .get('/users')
@@ -130,11 +146,12 @@ describe('UsersController', () => {
       expect(page2Response.body).toHaveLength(1);
       const secondUserId = page2Response.body[0].id;
       expect(secondUserId).not.toEqual(firstUserId); // Ensure the second page returns a different user
-      expect(page2Response.body[0].username).toEqual(TEST_USER_ADMIN); // Second user should be 'adminuser'
+      expect(page2Response.body[0].username).toEqual(TEST_USERNAME_ADMIN); // Second user should be 'adminuser'
       expect(page2Response.body[0]).not.toHaveProperty('passwordHashed');
       expect(page2Response.body[0]).not.toHaveProperty('refreshToken');
     });
 
+    // Test: Should sort users by id in ascending order and verify the sort works correctly
     it('should sort users by id in ascending order and verify the sort works correctly', async () => {
       const response = await request(app.getHttpServer())
         .get('/users')
@@ -147,12 +164,13 @@ describe('UsersController', () => {
 
       expect(response.body.length).toBeGreaterThan(1);
       expect(response.body[0].id).toBeLessThan(response.body[1].id); // Verify ascending order
-      expect(response.body[0].username).toEqual(TEST_USER_1); // First user should be 'testuser1'
-      expect(response.body[1].username).toEqual(TEST_USER_ADMIN); // Second user should be 'adminuser'
+      expect(response.body[0].username).toEqual(TEST_USERNAME_1); // First user should be 'testuser1'
+      expect(response.body[1].username).toEqual(TEST_USERNAME_ADMIN); // Second user should be 'adminuser'
       expect(response.body[0]).not.toHaveProperty('passwordHashed');
       expect(response.body[0]).not.toHaveProperty('refreshToken');
     });
 
+    // Test: Should filter users by userType and paginate the results
     it('should filter users by userType and paginate the results', async () => {
       const response = await request(app.getHttpServer())
         .get('/users')
@@ -181,6 +199,7 @@ describe('UsersController', () => {
       expect(response.body[0]).not.toHaveProperty('refreshToken');
     });
 
+    // Test: Should return an empty list if no users match the filter
     it('should return an empty list if no users match the filter', async () => {
       const response = await request(app.getHttpServer())
         .get('/users')
@@ -193,6 +212,7 @@ describe('UsersController', () => {
       expect(response.body).toHaveLength(0); // Expect empty result
     });
 
+    // Test: Should return an empty list when paginating beyond the last page
     it('should return an empty list when paginating beyond the last page', async () => {
       const response = await request(app.getHttpServer())
         .get('/users')
@@ -206,6 +226,7 @@ describe('UsersController', () => {
       expect(response.body).toHaveLength(0); // Expect empty result
     });
 
+    // Test: Should allow sorting by username in descending order and return correctly sorted users
     it('should allow sorting by username in descending order and return correctly sorted users', async () => {
       const response = await request(app.getHttpServer())
         .get('/users')
@@ -229,6 +250,7 @@ describe('UsersController', () => {
     });
 
     // Test with invalid token
+    // Test: Should return 401 for GET /users with an invalid access token
     it('should return 401 for GET /users with an invalid access token', async () => {
       const invalidToken = 'invalid.jwt.token';
 
@@ -239,10 +261,11 @@ describe('UsersController', () => {
     });
 
     // Test with valid token after refresh
+    // Test: Should allow GET /users after refreshing access token
     it('should allow GET /users after refreshing access token', async () => {
       const loginResponse = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ username: TEST_USER_ADMIN, password: TEST_PASSWORD })
+        .send({ username: TEST_USERNAME_ADMIN, password: TEST_PASSWORD })
         .expect(HTTP._200_OK);
 
       const refreshToken = loginResponse.body.refreshToken;
@@ -261,13 +284,20 @@ describe('UsersController', () => {
     });
   });
 
+  /**
+   * =======================================================
+   * Test suite: GET:id
+   * =======================================================
+   */
   describe('/users/:id (GET) - Get user by ID', () => {
+    // Test: Should return 401 for unauthenticated users
     it('should return 401 for unauthenticated users', async () => {
       await request(app.getHttpServer())
         .get('/users/1')
         .expect(HTTP._401_UNAUTHORIZED);
     });
 
+    // Test: Should return 403 for USER role trying to access another user
     it('should return 403 for USER role trying to access another user', async () => {
       await request(app.getHttpServer())
         .get('/users/2')
@@ -275,6 +305,7 @@ describe('UsersController', () => {
         .expect(HTTP._403_FORBIDDEN);
     });
 
+    // Test: Should return 404 for non-existent user ID
     it('should return 404 for non-existent user ID', async () => {
       await request(app.getHttpServer())
         .get('/users/3')
@@ -282,6 +313,7 @@ describe('UsersController', () => {
         .expect(HTTP._404_NOT_FOUND); // Expecting a 404 Not Found for non-existent user
     });
 
+    // Test: Should allow USER to access their own user data
     it('should allow USER to access their own user data', async () => {
       const response = await request(app.getHttpServer())
         .get('/users/1')
@@ -293,6 +325,7 @@ describe('UsersController', () => {
       expect(response.body).not.toHaveProperty('refreshToken');
     });
 
+    // Test: Should allow ADMIN to access any user data
     it('should allow ADMIN to access any user data', async () => {
       const response = await request(app.getHttpServer())
         .get('/users/1')
@@ -318,7 +351,7 @@ describe('UsersController', () => {
     it('should allow GET /users/:id after refreshing access token', async () => {
       const loginResponse = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ username: TEST_USER_ADMIN, password: TEST_PASSWORD })
+        .send({ username: TEST_USERNAME_ADMIN, password: TEST_PASSWORD })
         .expect(HTTP._200_OK);
 
       const refreshToken = loginResponse.body.refreshToken;
@@ -337,6 +370,11 @@ describe('UsersController', () => {
     });
   });
 
+  /**
+   * =======================================================
+   * Test suite: POST
+   * =======================================================
+   */
   describe('/users (POST) - Create a new user', () => {
     const newUser: CreateUserDto = {
       username: 'newuser',
@@ -347,6 +385,7 @@ describe('UsersController', () => {
       userType: USER_TYPE.USER,
     };
 
+    // Test: Should return 400 if validation fails
     it('should return 400 if validation fails', async () => {
       // Send incomplete data to trigger validation failure
       const incompleteUserData = {
@@ -360,9 +399,10 @@ describe('UsersController', () => {
         .expect(HTTP._400_BAD_REQUEST);
     });
 
+    // Test: Should return 500 when trying to create a user with an existing username
     it('should return 500 when trying to create a user with an existing username', async () => {
       const existingUserData = {
-        username: TEST_USER_1, // Username already exists
+        username: TEST_USERNAME_1, // Username already exists
         password: 'newpassword',
         name: 'Duplicate User',
         address: '789 Another St',
@@ -376,6 +416,7 @@ describe('UsersController', () => {
         .expect(HTTP._500_INTERNAL_SERVER_ERROR); // Expecting a 500 Internal Server Error due to unique constraint violation
     });
 
+    // Test: Should create a new user and return 201
     it('should create a new user and return 201', async () => {
       const response = await request(app.getHttpServer())
         .post('/users')
@@ -392,6 +433,7 @@ describe('UsersController', () => {
       expect(response.body).not.toHaveProperty('refreshToken');
     });
 
+    // Test: Should create a user and reflect it in a subsequent GET request
     it('should create a user and reflect it in a subsequent GET request', async () => {
       // First, create the new user
       const createResponse = await request(app.getHttpServer())
@@ -418,6 +460,7 @@ describe('UsersController', () => {
       expect(getResponse.body).not.toHaveProperty('refreshToken');
     });
 
+    // Test: Should return 400 when attempting to create a user with a non-existent field
     it('should return 400 when attempting to create a user with a non-existent field', async () => {
       const invalidCreateData = {
         username: 'newuser',
@@ -433,7 +476,13 @@ describe('UsersController', () => {
     });
   });
 
+  /**
+   * =======================================================
+   * Test suite: PATCH
+   * =======================================================
+   */
   describe('/users/:id (PATCH) - Update user by ID', () => {
+    // Test: Should return 401 for unauthenticated users
     it('should return 401 for unauthenticated users', async () => {
       await request(app.getHttpServer())
         .patch('/users/1')
@@ -441,6 +490,7 @@ describe('UsersController', () => {
         .expect(HTTP._401_UNAUTHORIZED);
     });
 
+    // Test: Should return 403 for USER role trying to update another user
     it('should return 403 for USER role trying to update another user', async () => {
       await request(app.getHttpServer())
         .patch('/users/2')
@@ -449,6 +499,7 @@ describe('UsersController', () => {
         .expect(HTTP._403_FORBIDDEN);
     });
 
+    // Test: Should return 404 when trying to update a non-existent user
     it('should return 404 when trying to update a non-existent user', async () => {
       const updatedData = {
         name: 'Non-existent User',
@@ -462,9 +513,10 @@ describe('UsersController', () => {
         .expect(HTTP._404_NOT_FOUND); // Expecting a 404 Not Found as the user doesn't exist
     });
 
+    // Test: Should return 500 when trying to update a user with an existing username
     it('should return 500 when trying to update a user with an existing username', async () => {
       const updatedData = {
-        username: TEST_USER_ADMIN, // Username already exists in another user
+        username: TEST_USERNAME_ADMIN, // Username already exists in another user
         name: 'Updated User',
         address: '789 New St',
       };
@@ -476,6 +528,7 @@ describe('UsersController', () => {
         .expect(HTTP._500_INTERNAL_SERVER_ERROR); // Expecting a 500 Internal Server Error due to unique constraint violation
     });
 
+    // Test: Should allow USER to update their own data
     it('should allow USER to update their own data', async () => {
       const response = await request(app.getHttpServer())
         .patch('/users/1')
@@ -488,6 +541,7 @@ describe('UsersController', () => {
       expect(response.body).not.toHaveProperty('refreshToken');
     });
 
+    // Test: Should allow ADMIN to update any user data
     it('should allow ADMIN to update any user data', async () => {
       const response = await request(app.getHttpServer())
         .patch('/users/2')
@@ -500,6 +554,7 @@ describe('UsersController', () => {
       expect(response.body).not.toHaveProperty('refreshToken');
     });
 
+    // Test: Should return 403 if USER tries to update userType to ADMIN
     it('should return 403 if USER tries to update userType to ADMIN', async () => {
       await request(app.getHttpServer())
         .patch('/users/1')
@@ -508,6 +563,7 @@ describe('UsersController', () => {
         .expect(HTTP._403_FORBIDDEN);
     });
 
+    // Test: Should allow USER to update userType to USER or undefined
     it('should allow USER to update userType to USER or undefined', async () => {
       // Test userType set to 'USER'
       let response = await request(app.getHttpServer())
@@ -532,6 +588,7 @@ describe('UsersController', () => {
       expect(response.body).not.toHaveProperty('refreshToken');
     });
 
+    // Test: Should allow ADMIN to update userType to ADMIN
     it('should allow ADMIN to update userType to ADMIN', async () => {
       const response = await request(app.getHttpServer())
         .patch('/users/1')
@@ -544,6 +601,7 @@ describe('UsersController', () => {
       expect(response.body).not.toHaveProperty('refreshToken');
     });
 
+    // Test: Should allow ADMIN to update all fields of a user at once
     it('should allow ADMIN to update all fields of a user at once', async () => {
       const updatedData = {
         username: 'updatedUser',
@@ -568,6 +626,7 @@ describe('UsersController', () => {
       expect(response.body).not.toHaveProperty('refreshToken');
     });
 
+    // Test: Should update user data and reflect the changes on a subsequent GET request
     it('should update user data and reflect the changes on a subsequent GET request', async () => {
       const updatedData = {
         name: 'New Name After Update',
@@ -598,7 +657,7 @@ describe('UsersController', () => {
 
     // Test: Keep a field unchanged if undefined is passed and update other fields with provided values
     it('should keep a field unchanged if undefined is passed, and update other fields with provided values', async () => {
-      const originalUser = await usersService.findUserById(1);
+      const originalUser = await usersDbService.findUserById(1);
 
       const updatedData = {
         name: undefined, // Name should remain unchanged
@@ -658,8 +717,9 @@ describe('UsersController', () => {
         .expect(HTTP._400_BAD_REQUEST); // Should return validation error
     });
 
+    // Test: Should not modify fields that are not included in the update request
     it('should not modify fields that are not included in the update request', async () => {
-      const originalUser = await usersService.findUserById(1);
+      const originalUser = await usersDbService.findUserById(1);
 
       const updatedData = {
         address: 'Updated Address',
@@ -676,6 +736,7 @@ describe('UsersController', () => {
       expect(response.body).toHaveProperty('name', originalUser.name); // Name remains unchanged
     });
 
+    // Test: Should not allow updating non-modifiable fields such as id
     it('should not allow updating non-modifiable fields such as id', async () => {
       // Load the original user from the database
       const updatedData = {
@@ -691,6 +752,7 @@ describe('UsersController', () => {
         .expect(HTTP._400_BAD_REQUEST); // Validation ERROR
     });
 
+    // Test: Should not allow updating non-modifiable fields such as passwordHashed, and refreshTokenHashed
     it('should not allow updating non-modifiable fields such as passwordHashed, and refreshTokenHashed', async () => {
       const updatedData = {
         passwordHashed: 'newhashedpassword', // Attempting to modify passwordHashed, which should not be allowed
@@ -724,7 +786,7 @@ describe('UsersController', () => {
     it('should allow PUT /users/:id after refreshing access token', async () => {
       const loginResponse = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ username: TEST_USER_ADMIN, password: TEST_PASSWORD })
+        .send({ username: TEST_USERNAME_ADMIN, password: TEST_PASSWORD })
         .expect(HTTP._200_OK);
 
       const refreshToken = loginResponse.body.refreshToken;
@@ -748,6 +810,7 @@ describe('UsersController', () => {
         .expect(HTTP._200_OK); // Expect 200 after successful refresh
     });
 
+    // Test: Should return 400 when attempting to update a non-existent field
     it('should return 400 when attempting to update a non-existent field', async () => {
       const invalidUpdateData = {
         nonExistentField: 'This field does not exist', // Attempt to update an invalid field
@@ -763,13 +826,20 @@ describe('UsersController', () => {
     });
   });
 
+  /**
+   * =======================================================
+   * Test suite: DELETE
+   * =======================================================
+   */
   describe('/users/:id (DELETE) - Delete user by ID', () => {
+    // Test: Should return 401 for unauthenticated users
     it('should return 401 for unauthenticated users', async () => {
       await request(app.getHttpServer())
         .delete('/users/1')
         .expect(HTTP._401_UNAUTHORIZED);
     });
 
+    // Test: Should return 403 for USER role trying to delete another user
     it('should return 403 for USER role trying to delete another user', async () => {
       await request(app.getHttpServer())
         .delete('/users/2')
@@ -777,6 +847,7 @@ describe('UsersController', () => {
         .expect(HTTP._403_FORBIDDEN);
     });
 
+    // Test: Should return 404 when trying to delete a non-existent user
     it('should return 404 when trying to delete a non-existent user', async () => {
       await request(app.getHttpServer())
         .delete('/users/999') // Attempt to delete a non-existent user with ID 999
@@ -784,6 +855,7 @@ describe('UsersController', () => {
         .expect(HTTP._404_NOT_FOUND); // Expecting a 404 Not Found as the user doesn't exist
     });
 
+    // Test: Should allow USER to delete their own data
     it('should allow USER to delete their own data', async () => {
       const response = await request(app.getHttpServer())
         .delete('/users/1')
@@ -795,6 +867,7 @@ describe('UsersController', () => {
       expect(response.body).not.toHaveProperty('refreshToken');
     });
 
+    // Test: Should allow ADMIN to delete any user
     it('should allow ADMIN to delete any user', async () => {
       const response = await request(app.getHttpServer())
         .delete('/users/2')
@@ -806,6 +879,7 @@ describe('UsersController', () => {
       expect(response.body).not.toHaveProperty('refreshToken');
     });
 
+    // Test: Should delete a user and return 404 on subsequent GET request
     it('should delete a user and return 404 on subsequent GET request', async () => {
       // Perform the DELETE request to delete the user
       await request(app.getHttpServer())
@@ -834,7 +908,7 @@ describe('UsersController', () => {
     it('should allow DELETE /users/:id after refreshing access token', async () => {
       const loginResponse = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ username: TEST_USER_ADMIN, password: TEST_PASSWORD })
+        .send({ username: TEST_USERNAME_ADMIN, password: TEST_PASSWORD })
         .expect(HTTP._200_OK);
 
       const refreshToken = loginResponse.body.refreshToken;

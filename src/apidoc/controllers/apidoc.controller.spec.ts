@@ -9,6 +9,11 @@ import { INestApplication } from '@nestjs/common';
 import { OpenApiGeneratorService } from 'src/apidoc/services/openapi-generator.service';
 import { PdfGeneratorService } from 'src/apidoc/services/pdf-generator.service';
 
+/**
+ * =======================================================
+ * Test suite: ApidocController
+ * =======================================================
+ */
 describe('ApidocController', () => {
   let app: INestApplication;
   let openApiGeneratorService: OpenApiGeneratorService;

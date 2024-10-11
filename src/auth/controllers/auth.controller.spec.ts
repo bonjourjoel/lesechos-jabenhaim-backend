@@ -3,22 +3,28 @@ import * as request from 'supertest';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import {
   TEST_PASSWORD,
-  TEST_USER_1,
+  TEST_USERNAME_1,
   seedTestDatabase,
 } from 'prisma/fixtures/seed-test';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { AuthController } from './auth.controller';
+import { AuthDbService } from '../services/auth.db.service';
 import { AuthService } from '../services/auth.service';
 import { HTTP } from 'src/common/enums/http-status-code.enum';
 import { INestApplication } from '@nestjs/common';
 import { JwtStrategy } from '../strategies/jwt.strategy';
 import { PrismaService } from 'src/prisma/services/prisma.service';
-import { UsersService } from 'src/users/services/users.service';
+import { UsersDbService } from 'src/users/services/users.db.service';
 
+/**
+ * =======================================================
+ * Test suite: AuthController
+ * =======================================================
+ */
 describe('AuthController', () => {
   let app: INestApplication;
-  let usersService: UsersService;
+  let usersDbService: UsersDbService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -29,16 +35,17 @@ describe('AuthController', () => {
       ],
       providers: [
         PrismaService,
-        UsersService,
+        UsersDbService,
         JwtService,
         JwtStrategy,
+        AuthDbService,
         AuthService,
       ],
       controllers: [AuthController],
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    usersService = moduleFixture.get<UsersService>(UsersService);
+    usersDbService = moduleFixture.get<UsersDbService>(UsersDbService);
     await app.init();
   });
 
@@ -53,7 +60,7 @@ describe('AuthController', () => {
   // Test: Should return 400 if only username is provided (missing required fields like password)
   it('should return 400 if only username is provided', async () => {
     const incompleteData = {
-      username: TEST_USER_1,
+      username: TEST_USERNAME_1,
     };
 
     await request(app.getHttpServer())
@@ -65,7 +72,7 @@ describe('AuthController', () => {
   // Test: Should return 400 if username, password, and an unknown field are provided
   it('should return 400 if username, password, and an unknown field are provided', async () => {
     const invalidData = {
-      username: TEST_USER_1,
+      username: TEST_USERNAME_1,
       password: TEST_PASSWORD,
       unknownField: 'someValue', // This field does not exist in the DTO
     };
@@ -76,10 +83,11 @@ describe('AuthController', () => {
       .expect(HTTP._400_BAD_REQUEST); // Expecting validation to fail with 400
   });
 
+  // Test: Should successfully login
   it('should successfully login', async () => {
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ username: TEST_USER_1, password: TEST_PASSWORD })
+      .send({ username: TEST_USERNAME_1, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
     const accessToken: string = loginResponse.body.accessToken;
 
@@ -88,6 +96,7 @@ describe('AuthController', () => {
     expect(accessToken).not.toEqual('');
   });
 
+  // Test: Should fail login with wrong username
   it('should fail login with wrong username', async () => {
     const loginDto = {
       username: 'wrong_login',
@@ -100,9 +109,10 @@ describe('AuthController', () => {
       .expect(HTTP._401_UNAUTHORIZED);
   });
 
+  // Test: should fail login with wrong password
   it('should fail login with wrong password', async () => {
     const loginDto = {
-      username: TEST_USER_1,
+      username: TEST_USERNAME_1,
       password: 'blabla',
     };
 
@@ -112,10 +122,11 @@ describe('AuthController', () => {
       .expect(HTTP._401_UNAUTHORIZED);
   });
 
+  // Test: Should refresh the access token using refresh token
   it('should refresh the access token using refresh token', async () => {
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ username: TEST_USER_1, password: TEST_PASSWORD })
+      .send({ username: TEST_USERNAME_1, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
 
     const refreshToken = loginResponse.body.refreshToken;
@@ -129,10 +140,11 @@ describe('AuthController', () => {
     expect(refreshResponse.body).toHaveProperty('refreshToken');
   });
 
+  // Test : Should successfully logout and remove the refresh token
   it('should successfully logout and remove the refresh token', async () => {
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ username: TEST_USER_1, password: TEST_PASSWORD })
+      .send({ username: TEST_USERNAME_1, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
 
     const accessToken = loginResponse.body.accessToken;
@@ -142,16 +154,17 @@ describe('AuthController', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(HTTP._200_OK);
 
-    const user = await usersService.findUserByUsername(TEST_USER_1, {
+    const user = await usersDbService.findUserByUsername(TEST_USERNAME_1, {
       removeSensitiveInformation: false,
     });
     expect(user.refreshTokenHashed).toBeNull();
   });
 
+  // Test: Should refresh the access token twice and allow logout with the latest accessToken
   it('should refresh the access token twice and allow logout with the latest accessToken', async () => {
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ username: TEST_USER_1, password: TEST_PASSWORD })
+      .send({ username: TEST_USERNAME_1, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
 
     let refreshToken = loginResponse.body.refreshToken;
@@ -176,10 +189,11 @@ describe('AuthController', () => {
       .expect(HTTP._200_OK);
   });
 
+  // Test: Should not allow refresh with the same refresh token after logout
   it('should not allow refresh with the same refresh token after logout', async () => {
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ username: TEST_USER_1, password: TEST_PASSWORD })
+      .send({ username: TEST_USERNAME_1, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
 
     const refreshToken = loginResponse.body.refreshToken;
@@ -195,10 +209,11 @@ describe('AuthController', () => {
       .expect(HTTP._401_UNAUTHORIZED);
   });
 
+  // Test: Should not allow refresh with the old refresh token after a successful refresh
   it('should not allow refresh with the old refresh token after a successful refresh', async () => {
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ username: TEST_USER_1, password: TEST_PASSWORD })
+      .send({ username: TEST_USERNAME_1, password: TEST_PASSWORD })
       .expect(HTTP._200_OK);
 
     const refreshToken = loginResponse.body.refreshToken;
