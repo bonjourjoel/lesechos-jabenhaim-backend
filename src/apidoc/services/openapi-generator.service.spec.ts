@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { OpenApiGeneratorService } from './openapi-generator.service';
 
-describe('OpenapiGeneratorService', () => {
+describe('Unit Test: OpenapiGeneratorService', () => {
   let service: OpenApiGeneratorService;
 
   beforeEach(async () => {

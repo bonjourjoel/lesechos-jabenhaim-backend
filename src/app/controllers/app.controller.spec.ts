@@ -4,7 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from '../services/app.service';
 import { LoggerModule } from 'src/logger/logger.module';
 
-describe('AppController', () => {
+describe('Unit Test: AppController', () => {
   let appController: AppController;
 
   beforeEach(async () => {

@@ -1,7 +1,7 @@
 import { AllExceptionsLoggerFilter } from './log-all-exceptions.filter';
 import { Logger as WinstonLogger } from 'winston';
 
-describe('AllExceptionsLoggerFilter', () => {
+describe('Unit Test: AllExceptionsLoggerFilter', () => {
   let mockWinstonLogger: WinstonLogger;
 
   beforeEach(() => {

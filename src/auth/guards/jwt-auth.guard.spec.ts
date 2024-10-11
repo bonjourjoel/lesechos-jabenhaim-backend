@@ -1,6 +1,6 @@
 import { JwtAuthGuard } from './jwt-auth.guard';
 
-describe('JwtAuthGuard', () => {
+describe('Unit Test: JwtAuthGuard', () => {
   it('should be defined', () => {
     expect(new JwtAuthGuard()).toBeDefined();
   });

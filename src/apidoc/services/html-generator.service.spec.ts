@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { HtmlGeneratorService } from './html-generator.service';
 import { OpenApiGeneratorService } from './openapi-generator.service';
 
-describe('HtmlGeneratorService', () => {
+describe('Unit Test: HtmlGeneratorService', () => {
   let service: HtmlGeneratorService;
 
   beforeEach(async () => {

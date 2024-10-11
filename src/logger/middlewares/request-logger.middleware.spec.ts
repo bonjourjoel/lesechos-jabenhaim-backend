@@ -3,7 +3,7 @@ import { Logger as WinstonLogger } from 'winston';
 
 // Import the Logger type from winston
 
-describe('RequestLoggerMiddleware', () => {
+describe('Unit Test: RequestLoggerMiddleware', () => {
   let mockWinstonLogger: WinstonLogger; // Define a mock logger
 
   beforeEach(() => {

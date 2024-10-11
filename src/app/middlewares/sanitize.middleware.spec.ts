@@ -1,6 +1,6 @@
 import { SanitizeMiddleware } from './sanitize.middleware';
 
-describe('SanitizeMiddleware', () => {
+describe('Unit Test: SanitizeMiddleware', () => {
   it('should be defined', () => {
     expect(new SanitizeMiddleware()).toBeDefined();
   });

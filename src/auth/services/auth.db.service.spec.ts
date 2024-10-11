@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthDbService } from './auth.db.service';
 import { PrismaService } from 'src/prisma/services/prisma.service';
 
-describe('AuthDbService', () => {
+describe('Unit Test: AuthDbService', () => {
   let service: AuthDbService;
 
   beforeEach(async () => {

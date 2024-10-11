@@ -6,7 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/services/prisma.service';
 import { UsersDbService } from 'src/users/services/users.db.service';
 
-describe('AuthService', () => {
+describe('Unit Test: AuthService', () => {
   let authService: AuthService;
 
   beforeEach(async () => {

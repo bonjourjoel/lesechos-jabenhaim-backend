@@ -1,6 +1,6 @@
 import { OwnUserGuard } from './own-user.guard';
 
-describe('OwnUserGuard', () => {
+describe('Unit Test: OwnUserGuard', () => {
   it('should be defined', () => {
     expect(new OwnUserGuard()).toBeDefined();
   });

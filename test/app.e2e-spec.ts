@@ -5,7 +5,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from 'src/app/app.module';
 import { INestApplication } from '@nestjs/common';
 
-describe('AppController (e2e)', () => {
+describe('Unit Test: AppController (e2e)', () => {
   let app: INestApplication;
 
   beforeEach(async () => {

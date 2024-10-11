@@ -26,7 +26,7 @@ import { UsersDbService } from '../services/users.db.service';
  * Test suite: UsersController
  * =======================================================
  */
-describe('UsersController', () => {
+describe('Integration Test: UsersController', () => {
   let app: INestApplication;
   let userAccessToken: string;
   let adminAccessToken: string;
