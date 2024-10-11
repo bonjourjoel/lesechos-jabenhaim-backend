@@ -107,7 +107,7 @@ const customJsonFormat = winston.format.printf(
   imports: [
     WinstonModule.forRoot({
       transports: [
-        // Console logging if enabled via environment variables
+        // Console logging, if enabled via environment variables
         ...(process.env.LOGGER_ENABLE_CONSOLE_LOG === 'true'
           ? [
               new winston.transports.Console({
@@ -119,7 +119,7 @@ const customJsonFormat = winston.format.printf(
             ]
           : []),
 
-        // File logging with a unique filename at server start
+        // File logging with a unique filename at server start, if enabled via environment variables
         ...(process.env.LOGGER_ENABLE_FILE_LOG === 'true'
           ? [
               new winston.transports.File({
@@ -135,7 +135,7 @@ const customJsonFormat = winston.format.printf(
             ]
           : []),
 
-        // Datadog transport via HTTP API
+        // Datadog transport via HTTP API,  if enabled via environment variables
         ...(process.env.LOGGER_DATADOG_API_KEY?.trim()
           ? [
               new winston.transports.Http({

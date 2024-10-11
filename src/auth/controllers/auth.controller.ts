@@ -24,6 +24,8 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { AuthenticatedRequest } from '../types/authenticated-request.interface';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenDto } from '../dtos/refresh-token.dto';
+import { AuthResponseDto } from '../dtos/auth-response.dto'; // Import du DTO
+import { LogoutResponseDto } from '../dtos/logout-response.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -48,6 +50,11 @@ export class AuthController {
   @ApiResponse({
     status: HTTP._200_OK,
     description: 'User successfully logged in.',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: HTTP._401_UNAUTHORIZED,
+    description: 'Invalid login credentials.',
   })
   async login(@Body() loginDto: LoginDto) {
     return await this.authService.login(loginDto);
@@ -69,6 +76,11 @@ export class AuthController {
   @ApiResponse({
     status: HTTP._200_OK,
     description: 'Token successfully refreshed.',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: HTTP._401_UNAUTHORIZED,
+    description: 'Invalid refresh token.',
   })
   @ApiBody({
     type: RefreshTokenDto,
@@ -106,6 +118,7 @@ export class AuthController {
   @ApiResponse({
     status: HTTP._200_OK,
     description: 'User successfully logged out.',
+    type: LogoutResponseDto,
   })
   async logout(@Request() req: AuthenticatedRequest) {
     return this.authService.logout(req.user.userId);

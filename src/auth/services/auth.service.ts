@@ -5,8 +5,10 @@ import {
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 
 import { AuthDbService } from './auth.db.service';
+import { AuthResponseDto } from '../dtos/auth-response.dto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from '../dtos/login.dto';
+import { LogoutResponseDto } from '../dtos/logout-response.dto';
 import { User } from '@prisma/client';
 import { UsersDbService } from 'src/users/services/users.db.service';
 import { compareHashedPasword } from 'src/common/utils/password-hasher.utils';
@@ -20,7 +22,7 @@ export class AuthService {
     private readonly authDbService: AuthDbService,
   ) {}
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     const user: User = await this.usersDbService.findUserByUsername(
       loginDto.username,
       { removeSensitiveInformation: false },
@@ -66,7 +68,10 @@ export class AuthService {
     };
   }
 
-  async refreshToken(userId: number, refreshToken: string) {
+  async refreshToken(
+    userId: number,
+    refreshToken: string,
+  ): Promise<AuthResponseDto> {
     const user = await this.usersDbService.findUserById(userId, {
       removeSensitiveInformation: false,
     });
@@ -111,7 +116,7 @@ export class AuthService {
     };
   }
 
-  async logout(userId: number) {
+  async logout(userId: number): Promise<LogoutResponseDto> {
     await this.authDbService.removeRefreshToken(userId);
 
     return { message: `Logout successful for userId=${userId}` };
