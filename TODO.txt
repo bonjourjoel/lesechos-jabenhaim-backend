@@ -1,7 +1,22 @@
 ## TODO
 
 OK Ajouter un système de refresh token JWT
-Faire un dossier github, Ajouter RabbitMQ et séparer les microservice auth et la lib common (rabbit mq avec "Mapping events to strongly-typed payloads" OU Kafka couplé avec Avro et Schema Registry OU sqs pour serverless message queue OU SERVERLSSMQ projet perso github rabbitmq en local avec abstraction vers sqs qui fonctionne en interceptant le message envoyé à rabbitmq sur la meme machine avec une lib npm et en le traduisant vers aws sqs ou gcp pubsub)
+Faire un dossier github
+Ajouter RabbitMQ et séparer les microservice auth et la lib common (rabbit mq avec "Mapping events to strongly-typed payloads" OU Kafka couplé avec Avro et Schema Registry OU sqs pour serverless message queue )
+  OU LESSMQ:
+    projet perso github rabbitmq
+    compatible rabbitmq en changeant seulement l'import (assistant cli le fait dans un sens et l'autre)
+    en local avec abstraction vers sqs
+    qui fonctionne en interceptant le message envoyé à rabbitmq sur la meme machine avec une lib npm et en le traduisant vers aws sqs ou gcp pubsub
+    systeme typage séparé de com avec microservice utilisant des trucs existants, qui vérifie et prévient au démarrage d'une appli si incompatbilité à l'appel
+    annotation typescript @LessMqMicroserviceInterface au dessus des fonctions ou classes ou méthodes qui servent d'interface au microservice + typage automatique
+    génération de code de fichiers d'interface
+      avec commande qui génère un @tyoes/blabla et qui peut le pusher dans github/npm
+      utilisable dans ci/cd
+    vérifications auto compatibilité
+      à l'exécution au démarrage que l'interface est compatible (ERROR) ou différente (WARNING)
+      à l'exécution à l'appel
+      à la compilation? comment?
 Utiliser nx monorepo et intégrer à vscode pour tout cloner et ouvrir d'un coup
 OK Ajouter un système de logs serveurs du type MEZMO
 OK ajouter un .env pour la production
