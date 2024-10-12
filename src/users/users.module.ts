@@ -19,7 +19,7 @@ import { UsersDbService } from './services/users.db.service';
  *
  * 2. **User Operations**:
  *    - Users can retrieve and modify their own profile information.
- *    - Admin users can modify and delete information of other users.
+ *    - Admin users can modify and delete information of other users, and nominate admins.
  *
  * 3. **User List**:
  *    - Available only to admin users, with sorting and filtering options on all fields.
