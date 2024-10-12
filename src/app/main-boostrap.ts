@@ -9,6 +9,10 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { buildSwaggerDocument } from './utils/swagger-setup.util';
 import helmet from 'helmet';
 
+/**
+ * Application entry point
+ */
+
 export async function bootstrap() {
   // Create nest.js app
   const app = await NestFactory.create(AppModule);

@@ -8,6 +8,11 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { UsersModule } from '../users/users.module';
 
+/**
+ * Authentification & Authorization module, using jwt (for the moment).
+ * Provides endpoints to login, refresh jwt token, logout.
+ */
+
 @Module({
   imports: [
     // Make sure env variable JWT_SECRET is defined before initializing this module (doesn't work otherwise because AuthModule could be intialized first in AppModule)

@@ -16,6 +16,10 @@ import { RequestLoggerMiddleware } from 'src/logger/middlewares/request-logger.m
 import { SanitizeMiddleware } from './middlewares/sanitize.middleware';
 import { UsersModule } from 'src/users/users.module';
 
+/**
+ * Main application module.
+ */
+
 @Module({
   imports: [
     // source environment variables
