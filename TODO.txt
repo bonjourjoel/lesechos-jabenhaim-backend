@@ -1,7 +1,7 @@
 ## TODO
 
 OK Ajouter un système de refresh token JWT
-Faire un dossier github, Ajouter RabbitMQ et séparer les microservice auth et la lib common
+Faire un dossier github, Ajouter RabbitMQ et séparer les microservice auth et la lib common (rabbit mq avec "Mapping events to strongly-typed payloads" OU Kafka couplé avec Avro et Schema Registry OU sqs pour serverless message queue OU SERVERLSSMQ projet perso github rabbitmq en local avec abstraction vers sqs qui fonctionne en interceptant le message envoyé à rabbitmq sur la meme machine avec une lib npm et en le traduisant vers aws sqs ou gcp pubsub)
 Utiliser nx monorepo et intégrer à vscode pour tout cloner et ouvrir d'un coup
 OK Ajouter un système de logs serveurs du type MEZMO
 OK ajouter un .env pour la production
@@ -9,6 +9,7 @@ NON Ajouter un Dockerfile
 Basculer la bdd en mongodb/mongoose, en local avec docker, en remote avec Atlas serverless
 Ajouter une pipeline CI/CD avec github action et un environnement cloud aws
 Ajouter kubernetes pour scaler (OU serverless)
+api gateway intégré à serverless
 OK Ajouter plein de tests unitaires, intégration
 Intégrer les tests dans la pipeline CI
 Ajouter plusieurs environnements dev/stage/prod
