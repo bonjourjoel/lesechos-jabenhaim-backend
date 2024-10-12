@@ -16,15 +16,8 @@ export async function compareHashedToken(args: {
   hashedStr: string;
 }): Promise<boolean> {
   const { plainStr, hashedStr } = args;
-  const secret = process.env.JWT_HASH_SECRET;
 
-  if (!secret) {
-    throw new Error('JWT_HASH_SECRET secret is not defined');
-  }
-
-  const plainStrHashed = createHmac('sha256', secret)
-    .update(plainStr)
-    .digest('hex');
+  const plainStrHashed = await hashToken(plainStr);
 
   return plainStrHashed === hashedStr;
 }
