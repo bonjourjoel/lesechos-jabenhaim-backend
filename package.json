@@ -18,7 +18,9 @@
     "prisma:migrate": "dotenv -e .env.local -- prisma migrate dev --name",
     "prisma:generate": "dotenv -e .env.local -- prisma generate",
     "prisma:status": "dotenv -e .env.local -- prisma migrate status",
-    "prisma:deploy": "dotenv -e .env.local -- prisma migrate deploy"
+    "prisma:deploy": "dotenv -e .env.local -- prisma migrate deploy",
+    "prisma:studio:local": "dotenv -e .env.local -- prisma studio",
+    "prisma:studio:test": "dotenv -e .env.test -- prisma studio"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.4",

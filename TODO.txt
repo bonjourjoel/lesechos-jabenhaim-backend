@@ -1,15 +1,25 @@
 ## TODO
 
 OK Ajouter un système de refresh token JWT
-Faire un dossier github
-Ajouter RabbitMQ et séparer les microservice auth et la lib common (rabbit mq avec "Mapping events to strongly-typed payloads" OU Kafka couplé avec Avro et Schema Registry OU sqs pour serverless message queue )
+Faire un dossier github (organization https://github.com/organizations/bonjourjoel-bootstrap-nest-next) et séparer les microservices
+  + lib common
+    + contient le type AuthenticatedUser
+  + service apigateway
+    contient aussi le décodage du jwt
+    transformer le type pour que user soit tjs défini avec au moins user.isAuthenticated:boolean
+  + service auth
+  + service user
+corriger delete user
+  doit déconnecter le user
+Ajouter RabbitMQ  (rabbit mq avec "Mapping events to strongly-typed payloads" OU Kafka couplé avec Avro et Schema Registry OU sqs pour serverless message queue )
   OU LESSMQ:
     projet perso github rabbitmq
     compatible rabbitmq en changeant seulement l'import (assistant cli le fait dans un sens et l'autre)
     en local avec abstraction vers sqs
     qui fonctionne en interceptant le message envoyé à rabbitmq sur la meme machine avec une lib npm et en le traduisant vers aws sqs ou gcp pubsub
     systeme typage séparé de com avec microservice utilisant des trucs existants, qui vérifie et prévient au démarrage d'une appli si incompatbilité à l'appel
-    annotation typescript @LessMqMicroserviceInterface au dessus des fonctions ou classes ou méthodes qui servent d'interface au microservice + typage automatique
+    annotation typescript @ au dessus des fonctions ou classes ou méthodes qui servent d'interface au microservice + typage automatique
+      @LessMQInteface ...
     génération de code de fichiers d'interface
       avec commande qui génère un @tyoes/blabla et qui peut le pusher dans github/npm
       utilisable dans ci/cd
@@ -17,7 +27,11 @@ Ajouter RabbitMQ et séparer les microservice auth et la lib common (rabbit mq a
       à l'exécution au démarrage que l'interface est compatible (ERROR) ou différente (WARNING)
       à l'exécution à l'appel
       à la compilation? comment?
-Utiliser nx monorepo et intégrer à vscode pour tout cloner et ouvrir d'un coup
+    OU openapi + OpenAPI Generator ==> génère les fichiers typescript typant tous les appels entre services
+      comme mentionné précédemment, tu peux utiliser des outils comme Dependabot ou Renovate pour surveiller les mises à jour des types dans un autre dépôt et ouvrir automatiquement des pull requests lorsque les types sont mis à jour.
+        renovate est mieux car il le fait instantanément et pas quotidiennement
+      utiliser ces types dans le front end
+NON Utiliser nx monorepo et intégrer à vscode pour tout cloner et ouvrir d'un coup
 OK Ajouter un système de logs serveurs du type MEZMO
 OK ajouter un .env pour la production
 NON Ajouter un Dockerfile
@@ -30,3 +44,44 @@ Intégrer les tests dans la pipeline CI
 Ajouter plusieurs environnements dev/stage/prod
 Configurer dans github un système de gestion de backlog et de sprints
 ...
+
+
+idées maquette:
+  - serverless + k8s simultanés sur le meme code nest.js; avec un cookie réglable par le client et le gateway appelle l'une ou l'autre version
+  - d'autre part pour ma maquette, je voudrais ne pas payer de frais pour rien
+    j'ai besoin d'avoir K8s qui tourne avec des instances docker seulement à certains moments
+    et j'ai besoin d'avoir des serverless provisionnés seulement à certains moments
+    et j'ai besoin d'avoir atlas qui tourne seulement à certains moments
+    est-ce possible d'avoir un bouton dans l'interface client qui démarre ces services sur demande pour 1h et les arrete ensuite (tout ca automatiquement) pour ne payer que pendant la démo, sachant que je ne sais pas quand un recruteur regarde la démo
+    ==> chatgpt a la réponse https://chatgpt.com/c/670b981b-257c-8008-90d4-0628f7a48ac9
+
+pour chaque package:
+  - faire une branche protégée master
+      - avec feature branch workflow
+      - avec CI
+        - lint
+        - test
+        - build test
+        - dependencies warnings envoyés aux consommateurs
+  - faire branches dev/stage/prod
+      - avec procédures:
+          - push all master pour un package
+          - push all master **pour tous les packages** (fin de sprint)
+          - cherry pick one branch pour un package
+      - avec CI/CD
+
+faire microservice auth
+  avec table séparée
+    userId
+    refreshTokenHashed
+    lastRefreshTimestamp
+  le login ou logout supprime l'ancienne ligne
+  comment supprimer les anciennes entrées?
+    quand delete user, faire logout sur le serveur
+
+comment faire les tests d'intégration sur plusieurs microservices?
+  mmmmm
+  ca doit être testé unitairement avec des mocks je pense? mais comment gérer l'état logged -> avec des mockguard qui retournent user bidon OU avec des tokens qui n'expirent pas
+  les tests d'intégration sont complexes et demandent d'avoir tout dans les registry docker et d'orchestrer -> utiliser github docker registry
+  et comment je fais des tests e2e avec toutes ces bases séparées? en local et en CI? -> pareil avec docker c'est le meme système
+  idée: quand il y a un appel en mode test sur une url, j'intercepte l'appel et si mode test, je lance le docker si pas lancé
